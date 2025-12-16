@@ -1,0 +1,92 @@
+// src/infrastructure/http/controllers/authController.ts
+import type { Request, Response } from "express";
+import { registerUser } from "../../../core/usecases/users/registerUser.ts";
+import { loginUser } from "../../../core/usecases/auth/login.ts";
+import { type AuthRequest } from "../middlewares/authMiddleware.ts";
+import { refreshTokenUsecase } from "../../../core/usecases/auth/refreshTokenUsecase.ts";
+import { requestPasswordResetUsecase } from "../../../core/usecases/auth/requestPasswordResetUsecase.ts";
+import { resetPasswordUsecase } from "../../../core/usecases/auth/resetPasswordUsecase.ts";
+
+export async function registerController(req: Request, res: Response) {
+  try {
+    const { name, email, password, phone } = req.body;
+
+    const user = await registerUser({ name, email, password, phone });
+
+    return res.status(201).json({
+      message: "Utilisateur créé",
+      user
+    });
+  } catch (err: any) {
+    if (err.message === "EMAIL_ALREADY_USED") {
+      return res.status(409).json({ message: "Email déjà utilisé" });
+    }
+    console.error(err);
+    return res.status(500).json({ message: "Erreur interne" });
+  }
+}
+
+export async function loginController(req: Request, res: Response) {
+  try {
+    const { email, password } = req.body;
+    const { user, token } = await loginUser({ email, password });
+
+    return res.json({
+      message: "Connexion réussie",
+      user,
+      token
+    });
+  } catch (err: any) {
+    if (err.message === "INVALID_CREDENTIALS") {
+      return res.status(401).json({ message: "Identifiants incorrects" });
+    }
+    console.error(err);
+    return res.status(500).json({ message: "Erreur interne" });
+  }
+}
+export async function meController(req: AuthRequest, res: Response) {
+    if (!req.user) {
+      return res.status(401).json({ message: "Non authentifié" });
+    }
+    return res.json({ user: req.user });
+}
+  
+export async function refreshTokenController(req: AuthRequest, res: Response) {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return res.status(400).json({ message: "Refresh token manquant" });
+      }
+  
+      const tokens = await refreshTokenUsecase(refreshToken);
+      return res.json(tokens);
+    } catch (err: any) {
+      if (err.message === "INVALID_REFRESH_TOKEN") {
+        return res.status(401).json({ message: "Refresh token invalide" });
+      }
+      console.error(err);
+      return res.status(500).json({ message: "Erreur interne" });
+    }
+}
+  
+    export async function requestPasswordResetController(req: AuthRequest, res: Response) {
+    const { email } = req.body;
+    await requestPasswordResetUsecase(email);
+    return res.json({
+      message: "Si un compte existe avec cet email, un lien de réinitialisation a été généré."
+    });
+}
+  
+export async function resetPasswordController(req: AuthRequest, res: Response) {
+    try {
+      const { token, newPassword } = req.body;
+      await resetPasswordUsecase(token, newPassword);
+      return res.json({ message: "Mot de passe réinitialisé avec succès." });
+    } catch (err: any) {
+      if (err.message === "INVALID_OR_EXPIRED_TOKEN") {
+        return res.status(400).json({ message: "Token invalide ou expiré." });
+      }
+      console.error(err);
+      return res.status(500).json({ message: "Erreur interne" });
+    }
+}

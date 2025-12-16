@@ -1,0 +1,19 @@
+// src/core/usecases/promotions/getPromotion.ts
+import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+
+export async function getPromotionUsecase(id: number) {
+  const promo = await prisma.promotion.findUnique({
+    where: { id },
+    include: {
+      products: true,
+      brands: true,
+      categories: true
+    }
+  });
+
+  if (!promo) {
+    throw new Error("PROMOTION_NOT_FOUND");
+  }
+
+  return promo;
+}

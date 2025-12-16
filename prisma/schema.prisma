@@ -1,0 +1,362 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  phone        String         @unique
+  password     String
+  role         UserRole       @default(CUSTOMER)
+  createdAt    DateTime       @default(now())
+  brands       Brand[]
+  orders       Order[]
+  Notification Notification[]
+
+  // si livreur
+  deliverer Deliverer?
+
+  emailVerifiedAt        DateTime?
+  resetPasswordToken     String?
+  resetPasswordExpiresAt DateTime?
+  refreshTokens          RefreshToken[]
+  PushToken              PushToken[]
+}
+
+model DeliveryZone {
+  id            Int     @id @default(autoincrement())
+  name          String
+  city          String?
+  minAmountFree Float? // montant à partir duquel la livraison est gratuite
+  baseFee       Float // frais de base
+  perKmFee      Float? // si tu veux évoluer vers distance-based
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  Order     Order[]
+}
+
+model DeliveryMethod {
+  id       Int     @id @default(autoincrement())
+  name     String // "Moto", "Pickup", "Point relais"
+  code     String  @unique
+  isActive Boolean @default(true)
+
+  createdAt          DateTime             @default(now())
+  DeliveryAssignment DeliveryAssignment[]
+  Order              Order[]
+}
+
+model Deliverer {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  vehicleType String?
+  isActive    Boolean @default(true)
+
+  createdAt   DateTime             @default(now())
+  assignments DeliveryAssignment[]
+}
+
+model DeliveryAssignment {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  delivererId Int
+  deliverer   Deliverer @relation(fields: [delivererId], references: [id])
+
+  methodId Int?
+  method   DeliveryMethod? @relation(fields: [methodId], references: [id])
+
+  status      DeliveryStatus @default(ASSIGNED)
+  assignedAt  DateTime       @default(now())
+  pickedAt    DateTime?
+  deliveredAt DateTime?
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  // Relations many-to-many
+  brands     Brand[]     @relation("BrandCategories")
+  products   Product[]   @relation("ProductCategories")
+  promotions Promotion[] @relation("PromotionCategories")
+  isGlobal   Boolean     @default(true)
+}
+
+model Promotion {
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String?
+  discountType  DiscountType
+  discountValue Float // % ou montant selon type
+  startsAt      DateTime
+  endsAt        DateTime
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  // Relations
+  products   Product[]  @relation("PromotionProducts")
+  brands     Brand[]    @relation("PromotionBrands")
+  categories Category[] @relation("PromotionCategories")
+}
+
+model Brand {
+  id             Int         @id @default(autoincrement())
+  name           String
+  slug           String      @unique
+  description    String?
+  primaryColor   String?
+  secondaryColor String?
+  logoUrl        String?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  // relation propriétaire
+  owner          User        @relation(fields: [ownerId], references: [id])
+  ownerId        Int
+  promotions     Promotion[] @relation("PromotionBrands")
+
+  products   Product[]
+  categories Category[] @relation("BrandCategories")
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  url       String
+  position  Int     @default(0)
+}
+
+model ProductVariant {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  name  String // ex: "Rouge - L"
+  price Float?
+  stock Int    @default(0)
+
+  option1 String? // ex: "Rouge"
+  option2 String? // ex: "L"
+  option3 String? // optionnel pour les cas spéciaux
+
+  imageUrl     String? // image variant (ex: rouge)
+  thumbnailUrl String? // petite version pour performance
+  createdAt    DateTime    @default(now())
+  OrderItem    OrderItem[]
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  brand        Brand    @relation(fields: [brandId], references: [id])
+  brandId      Int
+  name         String
+  slug         String   @unique
+  description  String?
+  imageUrl     String // image principale obligatoire
+  thumbnailUrl String? // version compressée optionnelle
+  price        Float
+  stock        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  pdatedAt     DateTime @updatedAt
+
+  images   ProductImage[]
+  variants ProductVariant[]
+
+  categories Category[]  @relation("ProductCategories")
+  promotions Promotion[] @relation("PromotionProducts")
+  orderItems OrderItem[]
+}
+
+model Order {
+  id               Int             @id @default(autoincrement())
+  user             User            @relation(fields: [userId], references: [id])
+  userId           Int
+  totalAmount      Float
+  paidAt           DateTime?
+  status           OrderStatus     @default(PENDING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  items            OrderItem[]
+  Payment          Payment[]
+  deliveryFee      Float           @default(0)
+  deliveryZoneId   Int?
+  deliveryZone     DeliveryZone?   @relation(fields: [deliveryZoneId], references: [id])
+  deliveryMethodId Int?
+  deliveryMethod   DeliveryMethod? @relation(fields: [deliveryMethodId], references: [id])
+
+  shippingAddress     String? // simple pour le moment
+  statusHistory       OrderStatusHistory[]
+  feeRecord           FeeRecord[]
+  deliveryAssignments DeliveryAssignment[]
+}
+
+model OrderStatusHistory {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  status    OrderStatus
+  note      String?
+  changedBy Int? // userId (admin, seller, system)
+  createdAt DateTime    @default(now())
+}
+
+model OrderItem {
+  id        Int             @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  variantId Int?
+  order     Order           @relation(fields: [orderId], references: [id])
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  quantity  Int
+  unitPrice Float
+}
+
+model Payment {
+  id           Int             @id @default(autoincrement())
+  order        Order           @relation(fields: [orderId], references: [id])
+  orderId      Int
+  provider     PaymentProvider
+  status       PaymentStatus   @default(PENDING)
+  amount       Float
+  currency     String          @default("XOF")
+  providerRef  String?         @unique
+  providerMeta Json?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int
+  type      String
+  title     String
+  message   String
+  metadata  Json?
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+}
+
+model MarketplaceFee {
+  id       Int       @id @default(autoincrement())
+  name     String
+  type     FeeType
+  target   FeeTarget
+  value    Float // % ou montant fixe
+  isActive Boolean   @default(true)
+
+  createdAt DateTime    @default(now())
+  feeRecord FeeRecord[]
+}
+
+model FeeRecord {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  feeId Int?
+  fee   MarketplaceFee? @relation(fields: [feeId], references: [id])
+
+  name          String // copie du nom pour audit
+  type          FeeType
+  target        FeeTarget
+  value         Float // pourcentage ou montant
+  appliedAmount Float // montant final appliqué à cette commande
+
+  createdAt DateTime @default(now())
+}
+
+model PushToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  platform  String // "ios" | "android"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+enum UserRole {
+  CUSTOMER
+  SELLER
+  ADMIN
+  DELIVERER
+}
+
+enum DeliveryStatus {
+  ASSIGNED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentProvider {
+  WAVE
+  ORANGE_MONEY
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  INITIATED
+  WAITING_CONFIRMATION
+  PAID
+  FAILED
+  CANCELED
+}
+
+enum DiscountType {
+  PERCENT
+  AMOUNT
+}
+
+enum FeeType {
+  PERCENTAGE
+  FIXED
+}
+
+enum FeeTarget {
+  ORDER
+  PRODUCT
+  SELLER
+  PAYMENT_PROVIDER
+}
