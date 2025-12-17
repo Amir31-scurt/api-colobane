@@ -7,7 +7,7 @@ import productRoutes from "./infrastructure/http/routes/productRoutes";
 import orderRoutes from "./infrastructure/http/routes/orderRoutes";
 import { pool } from "./config/db";
 import swaggerUi from "swagger-ui-express";
-import { mountSwagger } from "./docs/swagger";
+import { swaggerSpec } from "./docs/swagger";
 import adminRoutes from "./infrastructure/http/routes/adminRoutes";
 import categoryRoutes from "./infrastructure/http/routes/categoryRoutes";
 import paymentRoutes from "./infrastructure/http/routes/paymentRoutes";
@@ -27,8 +27,6 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-mountSwagger(app);
 
 
 app.get("/", async (_, res) => {
@@ -54,6 +52,7 @@ app.use("/api/delivery", deliveryRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(
   express.json({
