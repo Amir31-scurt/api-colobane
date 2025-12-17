@@ -1,9 +1,10 @@
+import { PaymentStatus } from "@prisma/client";
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export interface ConfirmPaymentInput {
   paymentId: number;
   success: boolean;
-  externalRef?: string;
+  providerRef?: string;
 }
 
 export async function confirmPaymentUsecase(input: ConfirmPaymentInput) {
@@ -16,18 +17,18 @@ export async function confirmPaymentUsecase(input: ConfirmPaymentInput) {
     throw new Error("PAYMENT_NOT_FOUND");
   }
 
-  const newStatus = input.success ? "SUCCESS" : "FAILED";
+  const newStatus: PaymentStatus = input.success ? "PAID" : "FAILED";
 
   const updatedPayment = await prisma.payment.update({
     where: { id: payment.id },
     data: {
       status: newStatus,
-      externalRef: input.externalRef
+      providerRef: input.providerRef
     }
   });
 
   // Si le paiement est OK → on met la commande en PAID
-  if (newStatus === "SUCCESS") {
+  if (newStatus === "PAID") {
     await prisma.order.update({
       where: { id: payment.orderId },
       data: { status: "PAID" }
@@ -40,7 +41,7 @@ export async function confirmPaymentUsecase(input: ConfirmPaymentInput) {
         type: "ORDER_PAID",
         title: "Paiement confirmé",
         message: `Votre commande #${payment.orderId} a été payée avec succès.`,
-        data: {
+        metadata: {
           orderId: payment.orderId,
           paymentId: payment.id
         }

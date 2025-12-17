@@ -1,4 +1,4 @@
-import { pool } from "../config/db.ts";
+import { pool } from "../config/db";
 
 export async function createProduct({
   brand_id,

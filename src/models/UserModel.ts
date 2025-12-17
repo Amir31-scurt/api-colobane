@@ -1,4 +1,4 @@
-import { pool } from "../config/db.ts";
+import { pool } from "../config/db";
 import bcrypt from "bcryptjs";
 
 export async function createUser({
