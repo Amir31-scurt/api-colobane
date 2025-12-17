@@ -6,7 +6,7 @@ interface RegisterUserInput {
   name: string;
   email: string;
   password: string;
-  phone?: string;
+  phone: string;
 }
 
 export async function registerUser(input: RegisterUserInput) {

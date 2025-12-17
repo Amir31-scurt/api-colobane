@@ -2,7 +2,7 @@ import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export interface CreatePaymentInput {
   orderId: number;
-  provider: "WAVE" | "ORANGE_MONEY" | "TEST";
+  provider: "WAVE" | "ORANGE_MONEY" | "CASH";
 }
 
 export async function createPaymentUsecase(input: CreatePaymentInput) {
