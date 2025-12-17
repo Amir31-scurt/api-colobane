@@ -37,12 +37,14 @@ export async function sendNotification(input: SendNotificationInput) {
   // PUSH async + retry
   const data: PushSendJobData = { notificationId: notification.id };
 
-  await pushQueue.add("push:send", data, {
-    attempts: 5,
-    backoff: { type: "exponential", delay: 2000 },
-    removeOnComplete: true,
-    removeOnFail: false
-  });
+//   if(pushQueue){
+//     await pushQueue.add("push:send", data, {
+//         attempts: 5,
+//         backoff: { type: "exponential", delay: 2000 },
+//         removeOnComplete: true,
+//         removeOnFail: false
+//     });
+//   }
 
   // plus tard: push / email
   // await dispatchPush(notification);
