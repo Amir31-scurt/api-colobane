@@ -23,6 +23,5 @@ export const pushWorker = new Worker<PushSendJobData>(
       notif.message,
       { notificationId: notif.id, type: notif.type, ...(notif.metadata as any) }
     );
-  },
-  { ...bullConnection, concurrency }
+  }
 );

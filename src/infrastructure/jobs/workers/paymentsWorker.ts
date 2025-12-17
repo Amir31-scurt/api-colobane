@@ -28,6 +28,5 @@ export const paymentsWorker = new Worker<WaveWebhookJobData | OrangeWebhookJobDa
       });
       return;
     }
-  },
-  { ...bullConnection, concurrency }
+  }
 );

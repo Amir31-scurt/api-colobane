@@ -21,6 +21,5 @@ export const adminWorker = new Worker<AdminDailyAlertsJobData>(
       message,
       metadata: alerts
     });
-  },
-  { ...bullConnection, concurrency: 2 }
+  }
 );
