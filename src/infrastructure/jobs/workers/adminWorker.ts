@@ -1,8 +1,8 @@
 import { Worker } from "bullmq";
-import { bullConnection } from "../bullmqConnection.ts";
-import type { AdminDailyAlertsJobData } from "../jobTypes.ts";
-import { getAdminAlertsUsecase } from "../../../core/usecases/admin/getAdminAlertsUsecase.ts";
-import { sendNotification } from "../../../core/services/notificationService.ts";
+import { bullConnection } from "../bullmqConnection";
+import type { AdminDailyAlertsJobData } from "../jobTypes";
+import { getAdminAlertsUsecase } from "../../../core/usecases/admin/getAdminAlertsUsecase";
+import { sendNotification } from "../../../core/services/notificationService";
 
 export const adminWorker = new Worker<AdminDailyAlertsJobData>(
   "adminQueue",

@@ -47,16 +47,18 @@ export async function waveWebhookController(req: Request, res: Response) {
       return res.status(400).json({ message: "Invalid signature" });
     }
 
-    await paymentsQueue.add(
-      "payments:waveWebhook",
-      { rawBody },
-      {
-        attempts: 10,
-        backoff: { type: "exponential", delay: 3000 },
-        removeOnComplete: true,
-        removeOnFail: false
-      }
-    );
+    if(paymentsQueue){
+      await paymentsQueue.add(
+        "payments:waveWebhook",
+        { rawBody },
+        {
+          attempts: 10,
+          backoff: { type: "exponential", delay: 3000 },
+          removeOnComplete: true,
+          removeOnFail: false
+        }
+      );
+    }
 
     return res.json({ ok: true });
   } catch (err) {
@@ -74,16 +76,18 @@ export async function orangeMoneyWebhookController(req: Request, res: Response) 
       return res.status(400).json({ message: "Invalid signature" });
     }
 
-    await paymentsQueue.add(
-      "payments:orangeWebhook",
-      { rawBody },
-      {
-        attempts: 10,
-        backoff: { type: "exponential", delay: 3000 },
-        removeOnComplete: true,
-        removeOnFail: false
-      }
-    );
+    if(paymentsQueue){
+      await paymentsQueue.add(
+        "payments:orangeWebhook",
+        { rawBody },
+        {
+          attempts: 10,
+          backoff: { type: "exponential", delay: 3000 },
+          removeOnComplete: true,
+          removeOnFail: false
+        }
+      );
+    }
 
     return res.json({ ok: true });
   } catch (err) {

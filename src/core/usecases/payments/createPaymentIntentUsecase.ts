@@ -10,7 +10,7 @@ export interface CreatePaymentIntentInput {
   userId: number;
   orderId: number;
   provider: PaymentProvider;
-}
+} 
 
 export interface PaymentIntentResult {
   paymentId: number;

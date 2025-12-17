@@ -15,7 +15,7 @@ export async function createNotificationUsecase(input: CreateNotificationInput) 
       type: input.type,
       title: input.title,
       message: input.message,
-      data: input.data ?? null
+      metadata: input.data ?? null
     }
   });
 }

@@ -83,7 +83,6 @@ export async function toggleSellerStatusController(req: AuthRequest, res: Respon
           id: updatedSeller.id,
           name: updatedSeller.name,
           email: updatedSeller.email,
-          isActive: updatedSeller.isActive
         }
       });
     } catch (err) {

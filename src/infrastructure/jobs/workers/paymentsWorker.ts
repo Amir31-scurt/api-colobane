@@ -1,8 +1,8 @@
 import { Worker } from "bullmq";
-import { bullConnection } from "../bullmqConnection.ts";
-import type { WaveWebhookJobData, OrangeWebhookJobData } from "../jobTypes.ts";
-import { handleWaveWebhookUsecase } from "../../../core/usecases/payments/handleWaveWebhookUsecase.ts";
-import { handleOrangeMoneyWebhookUsecase } from "../../../core/usecases/payments/handleOrangeMoneyWebhookUsecase.ts";
+import { bullConnection } from "../bullmqConnection";
+import type { WaveWebhookJobData, OrangeWebhookJobData } from "../jobTypes";
+import { handleWaveWebhookUsecase } from "../../../core/usecases/payments/handleWaveWebhookUsecase";
+import { handleOrangeMoneyWebhookUsecase } from "../../../core/usecases/payments/handleOrangeMoneyWebhookUsecase";
 
 const concurrency = Number(process.env.JOBS_CONCURRENCY || 5);
 

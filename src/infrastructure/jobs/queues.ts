@@ -1,7 +1,8 @@
 import { Queue } from "bullmq";
 import { bullConnection } from "./bullmqConnection";
+import { PushSendJobData } from "./jobTypes";
 
-export const pushQueue = null;
-export const paymentsQueue = null;
-export const adminQueue = null;
+export const pushQueue: Queue<PushSendJobData> = new Queue("pushQueue", bullConnection);
+export const paymentsQueue: Queue | null = null;
+export const adminQueue: Queue | null = null;
 

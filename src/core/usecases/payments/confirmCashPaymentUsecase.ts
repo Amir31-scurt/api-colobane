@@ -8,14 +8,14 @@ import { saveOrderFeesUsecase } from "../fees/saveOrderFeesUsecase";
 export async function confirmCashPaymentUsecase(orderId: number) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { payments: true }
+    include: { Payment: true }
   });
 
   if (!order) {
     throw new Error("ORDER_NOT_FOUND");
   }
 
-  const cashPayment = order.payments.find(
+  const cashPayment = order.Payment.find(
     (p) => p.provider === "CASH" && p.status === "WAITING_CONFIRMATION"
   );
 

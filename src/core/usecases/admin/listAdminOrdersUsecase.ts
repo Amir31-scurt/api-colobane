@@ -26,14 +26,14 @@ export async function listAdminOrdersUsecase(filters: AdminOrderFilters) {
           : {},
         filters.paymentProvider
           ? {
-              payments: {
+            Payment: {
                 some: { provider: filters.paymentProvider }
               }
             }
           : {},
         filters.onlyCashPending
           ? {
-              payments: {
+              Payment: {
                 some: {
                   provider: "CASH",
                   status: "WAITING_CONFIRMATION"
@@ -45,7 +45,7 @@ export async function listAdminOrdersUsecase(filters: AdminOrderFilters) {
     },
     include: {
       user: true,
-      payments: true,
+      Payment: true,
       deliveryAssignments: {
         include: {
           deliverer: { include: { user: true } }

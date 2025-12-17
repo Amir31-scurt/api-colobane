@@ -1,8 +1,8 @@
 import { Worker } from "bullmq";
-import { bullConnection } from "../bullmqConnection.ts";
-import type { PushSendJobData } from "../jobTypes.ts";
-import { prisma } from "../../prisma/prismaClient.ts";
-import { sendExpoPushToUser } from "../../../core/services/push/expoPushService.ts";
+import { bullConnection } from "../bullmqConnection";
+import type { PushSendJobData } from "../jobTypes";
+import { prisma } from "../../prisma/prismaClient";
+import { sendExpoPushToUser } from "../../../core/services/push/expoPushService";
 
 const concurrency = Number(process.env.JOBS_CONCURRENCY || 5);
 

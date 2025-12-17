@@ -12,7 +12,7 @@ export async function getOrderTrackingUsecase(orderId: number, userId: number, i
           variant: true
         }
       },
-      payments: true,
+      Payment: true,
       statusHistory: {
         orderBy: { createdAt: "asc" }
       }

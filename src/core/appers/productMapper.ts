@@ -20,16 +20,16 @@ export function mapProductWithFinalPrice(product: any) {
       promo.startsAt <= now &&
       promo.endsAt >= now
     ) {
-      if (promo.type === "PERCENT") {
-        const discounted = basePrice - basePrice * (promo.value / 100);
+      if (promo.discountType === "PERCENT") {
+        const discounted = basePrice - basePrice * (Number(promo.discountType) / 100);
         if (discounted < finalPrice) {
           finalPrice = discounted;
           appliedPromotion = promo;
         }
       }
 
-      if (promo.type === "FIXED") {
-        const discounted = basePrice - promo.value;
+      if (promo.discountType === "AMOUNT") {
+        const discounted = basePrice - promo.discountValue;
         if (discounted < finalPrice) {
           finalPrice = discounted;
           appliedPromotion = promo;
@@ -46,8 +46,8 @@ export function mapProductWithFinalPrice(product: any) {
     appliedPromotion: appliedPromotion
       ? {
           id: appliedPromotion.id,
-          type: appliedPromotion.type,
-          value: appliedPromotion.value,
+          type: appliedPromotion.discountType,
+          value: appliedPromotion.discountValue,
         }
       : null,
   };

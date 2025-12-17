@@ -1,6 +1,12 @@
 import axios from "axios";
 
-export async function createWavePayment(amount: number, currency: string, paymentId: number, orderId: number) {
+type WaveCreatePaymentResult = {
+  id: string;
+  url: string;
+  // add more fields if you use them later
+}; 
+
+export async function createWavePayment(amount: number, currency: string, paymentId: number, orderId: number): Promise<WaveCreatePaymentResult> {
   const apiKey = process.env.WAVE_API_KEY!;
   const base = process.env.WAVE_API_BASE!;
 
@@ -21,5 +27,5 @@ export async function createWavePayment(amount: number, currency: string, paymen
     }
   });
 
-  return response.data;
+  return response.data as WaveCreatePaymentResult;
 }

@@ -4,6 +4,7 @@ interface CreateProductInput {
   brandId: number;
   name: string;
   slug: string;
+  imageUrl: string;
   description?: string;
   price: number;
   stock?: number;
@@ -23,6 +24,7 @@ export async function createProductUsecase(input: CreateProductInput) {
       name: input.name,
       slug: input.slug,
       description: input.description,
+      imageUrl: input.imageUrl,
       price: input.price,
       stock: input.stock ?? 0,
       categories: input.categoryIds

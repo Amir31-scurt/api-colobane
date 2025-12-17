@@ -6,7 +6,7 @@ interface RegisterInput {
   name: string;
   email: string;
   password: string;
-  phone?: string;
+  phone: string;
 }
 
 export async function registerUsecase(input: RegisterInput) {
@@ -25,7 +25,7 @@ export async function registerUsecase(input: RegisterInput) {
       name: input.name,
       email: input.email,
       password: hashed,
-      phone: input.phone ?? null
+      phone: input.phone
       // role: CUSTOMER par défaut
     }
   });
