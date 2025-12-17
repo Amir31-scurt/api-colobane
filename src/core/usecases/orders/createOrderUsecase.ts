@@ -1,8 +1,8 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
-import { NotificationType } from "../../constants/notificationTypes.ts";
-import { buildNotificationContent } from "../../factories/notificationFactory.ts";
-import { calculateFinalPrice } from "../../helpers/calculateFinalPrice.ts";
-import { sendNotification } from "../../services/notificationService.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { NotificationType } from "../../constants/notificationTypes";
+import { buildNotificationContent } from "../../factories/notificationFactory";
+import { calculateFinalPrice } from "../../helpers/calculateFinalPrice";
+import { sendNotification } from "../../services/notificationService";
 
 interface OrderItemInput {
   productId: number;

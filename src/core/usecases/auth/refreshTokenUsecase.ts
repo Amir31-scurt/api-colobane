@@ -1,10 +1,10 @@
-// src/core/usecases/auth/refreshTokenUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/auth/refreshTokenUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import {
   verifyRefreshToken,
   createAccessToken,
   createRefreshToken
-} from "../../services/tokenService.ts";
+} from "../../services/tokenService";
 
 export async function refreshTokenUsecase(refreshToken: string) {
   // Vérifier s'il existe en base et non révoqué/expiré

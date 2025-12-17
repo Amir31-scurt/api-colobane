@@ -1,5 +1,5 @@
-// src/core/usecases/seller/getSellerDashboardUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/seller/getSellerDashboardUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export interface SellerDashboardStats {
   totalRevenue: number;

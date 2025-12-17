@@ -1,5 +1,5 @@
-// src/core/usecases/categories/createCategory.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/categories/createCategory
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 interface CreateCategoryInput {
   name: string;

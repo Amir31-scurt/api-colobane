@@ -1,10 +1,10 @@
-// src/core/usecases/auth/loginUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/auth/loginUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcrypt";
 import {
   createAccessToken,
   createRefreshToken
-} from "../../services/tokenService.ts";
+} from "../../services/tokenService";
 
 export async function loginUsecase(email: string, password: string) {
   const user = await prisma.user.findUnique({

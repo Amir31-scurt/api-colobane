@@ -1,5 +1,5 @@
-// src/core/usecases/brands/createBrand.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/brands/createBrand
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 interface CreateBrandInput {
   name: string;

@@ -1,4 +1,4 @@
-import { NotificationType } from "../constants/notificationTypes.ts";
+import { NotificationType } from "../constants/notificationTypes";
 
 interface NotificationPayload {
   type: NotificationType;

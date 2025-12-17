@@ -1,10 +1,10 @@
 // src/infrastructure/http/routes/notificationRoutes.ts
 import express from "express";
-import { authRequired } from "../middlewares/authMiddleware.ts";
+import { authRequired } from "../middlewares/authMiddleware";
 import {
   listNotificationsController,
   markNotificationReadController
-} from "../controllers/notificationController.ts";
+} from "../controllers/notificationController";
 
 const router = express.Router();
 

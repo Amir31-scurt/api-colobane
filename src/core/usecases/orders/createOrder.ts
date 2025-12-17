@@ -1,5 +1,5 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
-import { calculateFinalPrice } from "../../helpers/calculateFinalPrice.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { calculateFinalPrice } from "../../helpers/calculateFinalPrice";
 
 interface OrderItemInput {
   productId: number;

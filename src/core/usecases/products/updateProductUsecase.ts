@@ -1,5 +1,5 @@
-// src/core/usecases/products/updateProductUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/products/updateProductUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 interface UpdateProductInput {
   name?: string;

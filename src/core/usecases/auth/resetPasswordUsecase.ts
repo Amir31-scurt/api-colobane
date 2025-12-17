@@ -1,5 +1,5 @@
-// src/core/usecases/auth/resetPasswordUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/auth/resetPasswordUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcrypt";
 
 export async function resetPasswordUsecase(token: string, newPassword: string) {

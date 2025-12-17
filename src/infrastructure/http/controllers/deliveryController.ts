@@ -1,8 +1,8 @@
 import type { Response } from "express";
-import type { AuthRequest } from "../middlewares/authMiddleware.ts";
-import { applyDeliveryToOrderUsecase } from "../../../core/usecases/delivery/applyDeliveryToOrderUsecase.ts";
-import { assignDelivererUsecase } from "../../../core/usecases/delivery/assignDelivererUsecase.ts";
-import { updateDeliveryStatusUsecase } from "../../../core/usecases/delivery/updateDeliveryStatusUsecase.ts";
+import type { AuthRequest } from "../middlewares/authMiddleware";
+import { applyDeliveryToOrderUsecase } from "../../../core/usecases/delivery/applyDeliveryToOrderUsecase";
+import { assignDelivererUsecase } from "../../../core/usecases/delivery/assignDelivererUsecase";
+import { updateDeliveryStatusUsecase } from "../../../core/usecases/delivery/updateDeliveryStatusUsecase";
 
 export async function applyDeliveryController(req: AuthRequest, res: Response) {
   try {

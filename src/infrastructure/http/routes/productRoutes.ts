@@ -9,9 +9,9 @@ import {
   setVariantsController,
   searchProductsController,
   advancedSearchProductsController
-} from "../controllers/productController.ts";
+} from "../controllers/productController";
 
-import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 

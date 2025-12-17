@@ -5,9 +5,9 @@ import {
   createCategoryController,
   listCategoriesController,
   getCategoryController
-} from "../controllers/categoryController.ts";
+} from "../controllers/categoryController";
 
-import { authRequired, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isAdmin } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 

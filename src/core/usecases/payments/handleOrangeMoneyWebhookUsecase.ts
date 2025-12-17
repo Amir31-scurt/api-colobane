@@ -1,9 +1,9 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
-import { NotificationType } from "../../constants/notificationTypes.ts";
-import { buildNotificationContent } from "../../factories/notificationFactory.ts";
-import { sendNotification } from "../../services/notificationService.ts";
-import { calculateFeesForOrderUsecase } from "../fees/calculateFeesForOrderUsecase.ts";
-import { saveOrderFeesUsecase } from "../fees/saveOrderFeesUsecase.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { NotificationType } from "../../constants/notificationTypes";
+import { buildNotificationContent } from "../../factories/notificationFactory";
+import { sendNotification } from "../../services/notificationService";
+import { calculateFeesForOrderUsecase } from "../fees/calculateFeesForOrderUsecase";
+import { saveOrderFeesUsecase } from "../fees/saveOrderFeesUsecase";
 
 interface OrangeMoneyWebhookPayload {
   providerRef: string;

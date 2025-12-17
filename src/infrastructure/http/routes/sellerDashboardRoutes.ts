@@ -1,6 +1,6 @@
 import express from "express";
-import { authRequired, isSeller } from "../middlewares/authMiddleware.ts";
-import { getSellerDashboardController } from "../controllers/sellerDashboardController.ts";
+import { authRequired, isSeller } from "../middlewares/authMiddleware";
+import { getSellerDashboardController } from "../controllers/sellerDashboardController";
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 import type { Response } from "express";
-import type { AuthRequest } from "../middlewares/authMiddleware.ts";
-import { getSellerDashboardUsecase } from "../../../core/usecases/seller/getSellerDashboardUsecase.ts";
+import type { AuthRequest } from "../middlewares/authMiddleware";
+import { getSellerDashboardUsecase } from "../../../core/usecases/seller/getSellerDashboardUsecase";
 
 export async function getSellerDashboardController(req: AuthRequest, res: Response) {
   try {

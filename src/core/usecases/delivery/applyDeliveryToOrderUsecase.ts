@@ -1,5 +1,5 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
-import { calculateDeliveryFeeUsecase } from "./calculateDeliveryFeeUsecase.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { calculateDeliveryFeeUsecase } from "./calculateDeliveryFeeUsecase";
 
 interface ApplyDeliveryInput {
   orderId: number;

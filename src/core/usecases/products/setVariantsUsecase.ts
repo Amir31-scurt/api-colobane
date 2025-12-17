@@ -1,5 +1,5 @@
-// src/core/usecases/products/setVariantsUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/products/setVariantsUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 interface VariantInput {
   name: string;

@@ -1,5 +1,5 @@
-// src/core/usecases/promotions/listPromotions.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/promotions/listPromotions
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function listPromotionsUsecase() {
   return prisma.promotion.findMany({

@@ -1,5 +1,5 @@
-// src/core/usecases/promotions/createPromotion.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/promotions/createPromotion
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export type DiscountType = "PERCENT" | "AMOUNT";
 

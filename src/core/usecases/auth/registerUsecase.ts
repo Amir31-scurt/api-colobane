@@ -1,5 +1,5 @@
-// src/core/usecases/auth/registerUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/auth/registerUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcrypt";
 
 interface RegisterInput {

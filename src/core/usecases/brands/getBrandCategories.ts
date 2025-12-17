@@ -1,5 +1,5 @@
-// src/core/usecases/brands/getBrandCategories.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/brands/getBrandCategories
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getBrandCategoriesUsecase(brandId: number) {
   const brand = await prisma.brand.findUnique({

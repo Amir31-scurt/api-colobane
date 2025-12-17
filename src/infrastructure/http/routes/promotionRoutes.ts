@@ -1,5 +1,5 @@
 import express from "express";
-import { authRequired, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isAdmin } from "../middlewares/authMiddleware";
 import {
   createPromotionController,
   listPromotionsController,
@@ -9,7 +9,7 @@ import {
   assignPromotionToProductsController,
   assignPromotionToBrandsController,
   assignPromotionToCategoriesController
-} from "../controllers/promotionController.ts";
+} from "../controllers/promotionController";
 
 const router = express.Router();
 

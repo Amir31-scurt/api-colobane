@@ -1,11 +1,11 @@
-// src/infrastructure/http/controllers/brandController.ts
+// src/infrastructure/http/controllers/brandController
 
 import type { Request, Response } from "express";
-import { createBrandUsecase } from "../../../core/usecases/brands/createBrand.ts";
-import { listBrandsUsecase } from "../../../core/usecases/brands/listBrands.ts";
-import { getBrandBySlugUsecase } from "../../../core/usecases/brands/getBrandBySlug.ts";
+import { createBrandUsecase } from "../../../core/usecases/brands/createBrand";
+import { listBrandsUsecase } from "../../../core/usecases/brands/listBrands";
+import { getBrandBySlugUsecase } from "../../../core/usecases/brands/getBrandBySlug";
 
-// src/infrastructure/http/controllers/brandController.ts
+// src/infrastructure/http/controllers/brandController
 
 export async function createBrandController(req: Request, res: Response) {
     try {

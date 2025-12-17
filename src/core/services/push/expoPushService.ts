@@ -1,5 +1,5 @@
 import axios from "axios";
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 

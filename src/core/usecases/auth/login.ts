@@ -1,5 +1,5 @@
-// src/core/usecases/auth/loginUser.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/auth/loginUser
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
 

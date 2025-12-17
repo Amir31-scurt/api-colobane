@@ -1,4 +1,4 @@
-import { redis } from "../redis/redisClient.ts";
+import { redis } from "../redis/redisClient";
 
 export const bullConnection = {
   // BullMQ accepte ioredis instance via "connection"

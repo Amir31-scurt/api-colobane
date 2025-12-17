@@ -1,5 +1,5 @@
-// src/core/usecases/promotions/assignPromotionToProducts.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/promotions/assignPromotionToProducts
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function assignPromotionToProductsUsecase(promotionId: number, productIds: number[]) {
   const promo = await prisma.promotion.findUnique({ where: { id: promotionId } });

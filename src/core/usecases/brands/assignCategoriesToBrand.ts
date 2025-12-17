@@ -1,5 +1,5 @@
-// src/core/usecases/brands/assignCategoriesToBrand.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/brands/assignCategoriesToBrand
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function assignCategoriesToBrandUsecase(brandId: number, categoryIds: number[]) {
   const brand = await prisma.brand.findUnique({

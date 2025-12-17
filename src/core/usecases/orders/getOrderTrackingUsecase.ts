@@ -1,5 +1,5 @@
-// src/core/usecases/orders/getOrderTrackingUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/orders/getOrderTrackingUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getOrderTrackingUsecase(orderId: number, userId: number, isSeller: boolean, isAdmin: boolean) {
   const order = await prisma.order.findUnique({

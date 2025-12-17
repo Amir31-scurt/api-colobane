@@ -1,11 +1,11 @@
 // src/infrastructure/http/routes/deliveryRoutes.ts
 import express from "express";
-import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware";
 import {
   applyDeliveryController,
   assignDelivererController,
   updateDeliveryStatusController
-} from "../controllers/deliveryController.ts";
+} from "../controllers/deliveryController";
 
 const router = express.Router();
 

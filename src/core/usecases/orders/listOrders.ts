@@ -1,5 +1,5 @@
-// src/core/usecases/orders/listOrders.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/orders/listOrders
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function listOrdersUsecase(userId: number) {
   return prisma.order.findMany({

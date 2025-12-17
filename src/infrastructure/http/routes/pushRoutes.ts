@@ -1,6 +1,6 @@
 import express from "express";
-import { authRequired } from "../middlewares/authMiddleware.ts";
-import { registerPushTokenController } from "../controllers/pushTokenController.ts";
+import { authRequired } from "../middlewares/authMiddleware";
+import { registerPushTokenController } from "../controllers/pushTokenController";
 
 const router = express.Router();
 

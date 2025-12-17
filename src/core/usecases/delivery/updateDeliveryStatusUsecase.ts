@@ -1,9 +1,9 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import type { DeliveryStatus, OrderStatus } from "@prisma/client";
-import { updateOrderStatusUsecase } from "../orders/updateOrderStatusUsecase.ts";
-import { sendNotification } from "../../services/notificationService.ts";
-import { buildNotificationContent } from "../../factories/notificationFactory.ts";
-import { NotificationType } from "../../constants/notificationTypes.ts";
+import { updateOrderStatusUsecase } from "../orders/updateOrderStatusUsecase";
+import { sendNotification } from "../../services/notificationService";
+import { buildNotificationContent } from "../../factories/notificationFactory";
+import { NotificationType } from "../../constants/notificationTypes";
 
 interface UpdateDeliveryStatusInput {
   assignmentId: number;

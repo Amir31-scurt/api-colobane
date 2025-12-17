@@ -1,5 +1,5 @@
-// src/core/usecases/promotions/assignPromotionToBrands.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/promotions/assignPromotionToBrands
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function assignPromotionToBrandsUsecase(promotionId: number, brandIds: number[]) {
   const promo = await prisma.promotion.findUnique({ where: { id: promotionId } });

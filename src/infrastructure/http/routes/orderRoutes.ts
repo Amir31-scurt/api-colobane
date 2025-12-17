@@ -1,12 +1,12 @@
 import express from "express";
-import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware";
 import {
   createOrderController,
   listUserOrdersController,
   listSellerOrdersController,
   updateOrderStatusController,
   getOrderTrackingController
-} from "../controllers/orderController.ts";
+} from "../controllers/orderController";
 
 const router = express.Router();
 

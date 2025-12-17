@@ -1,4 +1,4 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getOrderUsecase(orderId: number) {
   const order = await prisma.order.findUnique({

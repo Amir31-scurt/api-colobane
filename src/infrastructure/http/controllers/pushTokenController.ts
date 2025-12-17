@@ -1,6 +1,6 @@
 import type { Response } from "express";
-import type { AuthRequest } from "../middlewares/authMiddleware.ts";
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import type { AuthRequest } from "../middlewares/authMiddleware";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function registerPushTokenController(req: AuthRequest, res: Response) {
   const { token, platform } = req.body;

@@ -1,7 +1,7 @@
-import { PushSendJobData } from "../../infrastructure/jobs/jobTypes.ts";
-import { pushQueue } from "../../infrastructure/jobs/queues.ts";
-import { prisma } from "../../infrastructure/prisma/prismaClient.ts";
-import { sendExpoPush } from "./push/expoPushService.ts";
+import { PushSendJobData } from "../../infrastructure/jobs/jobTypes";
+import { pushQueue } from "../../infrastructure/jobs/queues";
+import { prisma } from "../../infrastructure/prisma/prismaClient";
+import { sendExpoPush } from "./push/expoPushService";
 
 interface SendNotificationInput {
   userId: number;

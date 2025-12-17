@@ -1,5 +1,5 @@
-// src/core/usecases/products/getProductUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/products/getProductUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getProductUsecase(slug: string) {
   const product = await prisma.product.findUnique({

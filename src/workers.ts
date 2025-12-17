@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { pushWorker } from "./infrastructure/jobs/workers/pushWorker.ts";
-import { paymentsWorker } from "./infrastructure/jobs/workers/paymentsWorker.ts";
-import { adminWorker } from "./infrastructure/jobs/workers/adminWorker.ts";
+import { pushWorker } from "./infrastructure/jobs/workers/pushWorker";
+import { paymentsWorker } from "./infrastructure/jobs/workers/paymentsWorker";
+import { adminWorker } from "./infrastructure/jobs/workers/adminWorker";
 
 console.log("✅ Workers Colobane démarrés");
 

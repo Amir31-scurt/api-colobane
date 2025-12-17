@@ -1,5 +1,5 @@
 import express from "express";
-import { authRequired, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isAdmin } from "../middlewares/authMiddleware";
 import {
   getAdminOverviewController,
   getAdminFeesController,
@@ -8,7 +8,7 @@ import {
   exportOrdersCsvController,
   toggleSellerStatusController,
   getAdminAlertsController
-} from "../controllers/adminController.ts";
+} from "../controllers/adminController";
 
 const router = express.Router();
 

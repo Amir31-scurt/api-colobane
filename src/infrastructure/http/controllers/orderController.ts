@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import { createOrderUsecase } from "../../../core/usecases/orders/createOrderUsecase.ts";
-import { listUserOrdersUsecase } from "../../../core/usecases/orders/listUserOrdersUsecase.ts";
-import { listSellerOrdersUsecase } from "../../../core/usecases/orders/listSellerOrdersUsecase.ts";
-import { updateOrderStatusUsecase } from "../../../core/usecases/orders/updateOrderStatusUsecase.ts";
-import { AuthRequest } from "../middlewares/authMiddleware.ts";
-import { getOrderTrackingUsecase } from "../../../core/usecases/orders/getOrderTrackingUsecase.ts";
+import { createOrderUsecase } from "../../../core/usecases/orders/createOrderUsecase";
+import { listUserOrdersUsecase } from "../../../core/usecases/orders/listUserOrdersUsecase";
+import { listSellerOrdersUsecase } from "../../../core/usecases/orders/listSellerOrdersUsecase";
+import { updateOrderStatusUsecase } from "../../../core/usecases/orders/updateOrderStatusUsecase";
+import { AuthRequest } from "../middlewares/authMiddleware";
+import { getOrderTrackingUsecase } from "../../../core/usecases/orders/getOrderTrackingUsecase";
 
 export async function createOrderController(req: AuthRequest, res: Response) {
   try {

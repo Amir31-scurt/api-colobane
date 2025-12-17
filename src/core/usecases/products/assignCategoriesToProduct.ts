@@ -1,4 +1,4 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function assignCategoriesToProductUsecase(productSlug: string, categoryIds: number[]) {
   const product = await prisma.product.findUnique({

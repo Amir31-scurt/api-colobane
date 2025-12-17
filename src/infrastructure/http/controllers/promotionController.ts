@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
-import { createPromotionUsecase } from "../../../core/usecases/promotions/createPromotionUsecase.ts";
-import { listPromotionsUsecase } from "../../../core/usecases/promotions/listPromotionsUsecase.ts";
-import { getPromotionUsecase } from "../../../core/usecases/promotions/getPromotionUsecase.ts";
-import { updatePromotionUsecase } from "../../../core/usecases/promotions/updatePromotionUsecase.ts";
-import { togglePromotionUsecase } from "../../../core/usecases/promotions/togglePromotionUsecase.ts";
-import { assignPromotionToProductsUsecase } from "../../../core/usecases/promotions/assignPromotionToProductsUsecase.ts";
-import { assignPromotionToBrandsUsecase } from "../../../core/usecases/promotions/assignPromotionToBrandsUsecase.ts";
-import { assignPromotionToCategoriesUsecase } from "../../../core/usecases/promotions/assignPromotionToCategoriesUsecase.ts";
+import { createPromotionUsecase } from "../../../core/usecases/promotions/createPromotionUsecase";
+import { listPromotionsUsecase } from "../../../core/usecases/promotions/listPromotionsUsecase";
+import { getPromotionUsecase } from "../../../core/usecases/promotions/getPromotionUsecase";
+import { updatePromotionUsecase } from "../../../core/usecases/promotions/updatePromotionUsecase";
+import { togglePromotionUsecase } from "../../../core/usecases/promotions/togglePromotionUsecase";
+import { assignPromotionToProductsUsecase } from "../../../core/usecases/promotions/assignPromotionToProductsUsecase";
+import { assignPromotionToBrandsUsecase } from "../../../core/usecases/promotions/assignPromotionToBrandsUsecase";
+import { assignPromotionToCategoriesUsecase } from "../../../core/usecases/promotions/assignPromotionToCategoriesUsecase";
 
 export async function createPromotionController(req: Request, res: Response) {
   try {

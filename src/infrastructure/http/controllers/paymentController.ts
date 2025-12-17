@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
-import type { AuthRequest } from "../middlewares/authMiddleware.ts";
+import type { AuthRequest } from "../middlewares/authMiddleware";
 import { PaymentProvider } from "@prisma/client";
-import { createPaymentIntentUsecase } from "../../../core/usecases/payments/createPaymentIntentUsecase.ts";
-import { handleWaveWebhookUsecase } from "../../../core/usecases/payments/handleWaveWebhookUsecase.ts";
-import { handleOrangeMoneyWebhookUsecase } from "../../../core/usecases/payments/handleOrangeMoneyWebhookUsecase.ts";
-import { confirmCashPaymentUsecase } from "../../../core/usecases/payments/confirmCashPaymentUsecase.ts";
-import { verifyWaveSignature } from "../../../core/services/providers/waveSignatureService.ts";
-import { verifyOrangeMoneySignature } from "../../../core/services/providers/orangeMoneySignature.ts";
-import { paymentsQueue } from "../../jobs/queues.ts";
+import { createPaymentIntentUsecase } from "../../../core/usecases/payments/createPaymentIntentUsecase";
+import { handleWaveWebhookUsecase } from "../../../core/usecases/payments/handleWaveWebhookUsecase";
+import { handleOrangeMoneyWebhookUsecase } from "../../../core/usecases/payments/handleOrangeMoneyWebhookUsecase";
+import { confirmCashPaymentUsecase } from "../../../core/usecases/payments/confirmCashPaymentUsecase";
+import { verifyWaveSignature } from "../../../core/services/providers/waveSignatureService";
+import { verifyOrangeMoneySignature } from "../../../core/services/providers/orangeMoneySignature";
+import { paymentsQueue } from "../../jobs/queues";
 
 interface WebhookRequest extends Request {
   rawBody?: string;

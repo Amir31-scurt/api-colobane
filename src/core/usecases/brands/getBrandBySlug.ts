@@ -1,5 +1,5 @@
-// src/core/usecases/brands/getBrandBySlug.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/brands/getBrandBySlug
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getBrandBySlugUsecase(slug: string) {
   const brand = await prisma.brand.findUnique({

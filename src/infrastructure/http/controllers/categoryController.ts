@@ -1,8 +1,8 @@
-// src/infrastructure/http/controllers/categoryController.ts
+// src/infrastructure/http/controllers/categoryController
 import type { Request, Response } from "express";
-import { createCategoryUsecase } from "../../../core/usecases/categories/createCategory.ts";
-import { listCategoriesUsecase } from "../../../core/usecases/categories/listCategories.ts";
-import { getCategoryBySlugUsecase } from "../../../core/usecases/categories/getCategoryBySlug.ts";
+import { createCategoryUsecase } from "../../../core/usecases/categories/createCategory";
+import { listCategoriesUsecase } from "../../../core/usecases/categories/listCategories";
+import { getCategoryBySlugUsecase } from "../../../core/usecases/categories/getCategoryBySlug";
 
 export async function createCategoryController(req: Request, res: Response) {
   try {

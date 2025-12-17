@@ -1,5 +1,5 @@
-// src/core/usecases/orders/updateOrderStatus.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/orders/updateOrderStatus
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import { OrderStatus } from "@prisma/client";
 
 export async function updateOrderStatusUsecase(orderId: number, status: OrderStatus) {

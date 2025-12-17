@@ -1,4 +1,4 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function markNotificationReadUsecase(notificationId: number, userId: number) {
   const notif = await prisma.notification.findUnique({ where: { id: notificationId } });

@@ -1,15 +1,15 @@
-// src/infrastructure/http/controllers/productController.ts
+// src/infrastructure/http/controllers/productController
 import type { Request, Response } from "express";
-import { createProductUsecase } from "../../../core/usecases/products/createProductUsecase.ts";
-import { updateProductUsecase } from "../../../core/usecases/products/updateProductUsecase.ts";
-import { listProductsUsecase } from "../../../core/usecases/products/listProductsUsecase.ts";
-import { getProductUsecase } from "../../../core/usecases/products/getProductUsecase.ts";
-import { setImagesUsecase } from "../../../core/usecases/products/setImagesUsecase.ts";
-import { setVariantsUsecase } from "../../../core/usecases/products/setVariantsUsecase.ts";
-import { searchProductsUsecase } from "../../../core/usecases/products/searchProductsUsecase.ts";
-import { advancedSearchProductsUsecase } from "../../../core/usecases/products/advancedSearchProductsUsecase.ts";
-import { mapProductWithFinalPrice } from "../../../core/appers/productMapper.ts";
-import { cacheGet, cacheSet } from "../../cache/cache.ts";
+import { createProductUsecase } from "../../../core/usecases/products/createProductUsecase";
+import { updateProductUsecase } from "../../../core/usecases/products/updateProductUsecase";
+import { listProductsUsecase } from "../../../core/usecases/products/listProductsUsecase";
+import { getProductUsecase } from "../../../core/usecases/products/getProductUsecase";
+import { setImagesUsecase } from "../../../core/usecases/products/setImagesUsecase";
+import { setVariantsUsecase } from "../../../core/usecases/products/setVariantsUsecase";
+import { searchProductsUsecase } from "../../../core/usecases/products/searchProductsUsecase";
+import { advancedSearchProductsUsecase } from "../../../core/usecases/products/advancedSearchProductsUsecase";
+import { mapProductWithFinalPrice } from "../../../core/appers/productMapper";
+import { cacheGet, cacheSet } from "../../cache/cache";
 
 export async function createProductController(req: Request, res: Response) {
   try {
@@ -121,6 +121,6 @@ export async function advancedSearchProductsController(req: Request, res: Respon
 
   const mapped = products.map((p) => mapProductWithFinalPrice(p));
   await cacheSet(cacheKey, mapped, 60); // 60s TTL
-  
+
   return res.json(mapped);
 }

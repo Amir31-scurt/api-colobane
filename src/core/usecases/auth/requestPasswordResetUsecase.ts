@@ -1,5 +1,5 @@
-// src/core/usecases/auth/requestPasswordResetUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/auth/requestPasswordResetUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import crypto from "crypto";
 
 export async function requestPasswordResetUsecase(email: string) {

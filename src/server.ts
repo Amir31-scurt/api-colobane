@@ -1,25 +1,25 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import authRoutes from "./infrastructure/http/routes/authRoutes.ts";
-import brandRoutes from "./infrastructure/http/routes/brandRoutes.ts";
-import productRoutes from "./infrastructure/http/routes/productRoutes.ts";
-import orderRoutes from "./infrastructure/http/routes/orderRoutes.ts";
-import { pool } from "./config/db.ts";
+import authRoutes from "./infrastructure/http/routes/authRoutes";
+import brandRoutes from "./infrastructure/http/routes/brandRoutes";
+import productRoutes from "./infrastructure/http/routes/productRoutes";
+import orderRoutes from "./infrastructure/http/routes/orderRoutes";
+import { pool } from "./config/db";
 import swaggerUi from "swagger-ui-express";
-import swaggerDoc from "./docs/swagger.ts";
-import adminRoutes from "./infrastructure/http/routes/adminRoutes.ts";
-import categoryRoutes from "./infrastructure/http/routes/categoryRoutes.ts";
-import paymentRoutes from "./infrastructure/http/routes/paymentRoutes.ts";
-import sellerDashboardRoutes from "./infrastructure/http/routes/sellerDashboardRoutes.ts";
-import notificationRoutes from "./infrastructure/http/routes/notificationRoutes.ts";
-import deliveryRoutes from "./infrastructure/http/routes/deliveryRoutes.ts";
-import searchRoutes from "./infrastructure/http/routes/searchRoutes.ts";
-import promotionRoutes from "./infrastructure/http/routes/promotionRoutes.ts";
-import uploadRoutes from "./infrastructure/http/routes/uploadRoutes.ts";
-import pushRoutes from "./infrastructure/http/routes/pushRoutes.ts";
-import { apiRateLimiter } from "./infrastructure/http/middlewares/rateLimitMiddleware.ts";
-import { registerSchedulers } from "./infrastructure/jobs/schedulers.ts";
+import { mountSwagger } from "./docs/swagger";
+import adminRoutes from "./infrastructure/http/routes/adminRoutes";
+import categoryRoutes from "./infrastructure/http/routes/categoryRoutes";
+import paymentRoutes from "./infrastructure/http/routes/paymentRoutes";
+import sellerDashboardRoutes from "./infrastructure/http/routes/sellerDashboardRoutes";
+import notificationRoutes from "./infrastructure/http/routes/notificationRoutes";
+import deliveryRoutes from "./infrastructure/http/routes/deliveryRoutes";
+import searchRoutes from "./infrastructure/http/routes/searchRoutes";
+import promotionRoutes from "./infrastructure/http/routes/promotionRoutes";
+import uploadRoutes from "./infrastructure/http/routes/uploadRoutes";
+import pushRoutes from "./infrastructure/http/routes/pushRoutes";
+import { apiRateLimiter } from "./infrastructure/http/middlewares/rateLimitMiddleware";
+import { registerSchedulers } from "./infrastructure/jobs/schedulers";
 
 
 dotenv.config();
@@ -27,6 +27,9 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+mountSwagger(app);
+
 
 app.get("/", async (_, res) => {
   await pool.query("SELECT 1");
@@ -37,7 +40,6 @@ app.get("/", async (_, res) => {
 app.use(apiRateLimiter);
 app.use("/api/upload", uploadRoutes);
 app.use("/uploads", express.static("uploads"));
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);

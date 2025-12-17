@@ -1,10 +1,10 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import { PaymentProvider } from "@prisma/client";
 import {
   buildWaveCheckoutUrl,
   buildOrangeMoneyCheckoutUrl
-} from "../../services/paymentUrlService.ts";
-import { createWavePayment } from "../../services/providers/wavePaymentProvider.ts";
+} from "../../services/paymentUrlService";
+import { createWavePayment } from "../../services/providers/wavePaymentProvider";
 
 export interface CreatePaymentIntentInput {
   userId: number;

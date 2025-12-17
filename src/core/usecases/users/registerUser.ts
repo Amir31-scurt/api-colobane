@@ -1,5 +1,5 @@
-// src/core/usecases/users/registerUser.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/users/registerUser
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcryptjs";
 
 interface RegisterUserInput {

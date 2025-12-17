@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { assignCategoriesToBrandUsecase } from "../../../core/usecases/brands/assignCategoriesToBrand.ts";
-import { getBrandCategoriesUsecase } from "../../../core/usecases/brands/getBrandCategories.ts";
+import { assignCategoriesToBrandUsecase } from "../../../core/usecases/brands/assignCategoriesToBrand";
+import { getBrandCategoriesUsecase } from "../../../core/usecases/brands/getBrandCategories";
 
 export async function assignCategoriesToBrandController(req: Request, res: Response) {
   try {

@@ -1,4 +1,4 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import type { OrderStatus, PaymentProvider } from "@prisma/client";
 
 interface AdminOrderFilters {

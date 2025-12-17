@@ -1,11 +1,11 @@
 import express from "express";
-import { authRequired, isAdmin, isSeller } from "../middlewares/authMiddleware.ts";
+import { authRequired, isAdmin, isSeller } from "../middlewares/authMiddleware";
 import {
   createPaymentIntentController,
   waveWebhookController,
   orangeMoneyWebhookController,
   confirmCashPaymentController
-} from "../controllers/paymentController.ts";
+} from "../controllers/paymentController";
 
 const router = express.Router();
 

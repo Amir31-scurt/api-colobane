@@ -1,13 +1,13 @@
 // src/infrastructure/http/routes/brandRoutes.ts
 import express from "express";
 import { createBrandController, listBrandsController, getBrandController } 
-  from "../controllers/brandController.ts";
+  from "../controllers/brandController";
 
-import { authRequired, isAdmin } from "../middlewares/authMiddleware.ts";
+import { authRequired, isAdmin } from "../middlewares/authMiddleware";
 import {
   assignCategoriesToBrandController,
   getBrandCategoriesController
-} from "../controllers/brandCategoryController.ts";
+} from "../controllers/brandCategoryController";
 
 const router = express.Router();
 

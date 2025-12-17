@@ -1,4 +1,4 @@
-import { adminQueue } from "./queues.ts";
+import { adminQueue } from "./queues";
 
 export async function registerSchedulers() {
   const cron = process.env.ADMIN_ALERTS_CRON!;

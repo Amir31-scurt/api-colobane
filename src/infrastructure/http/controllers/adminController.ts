@@ -1,11 +1,11 @@
 import type { Response } from "express";
-import type { AuthRequest } from "../middlewares/authMiddleware.ts";
-import { getAdminOverviewUsecase } from "../../../core/usecases/admin/getAdminOverviewUsecase.ts";
-import { getAdminFeesReportUsecase } from "../../../core/usecases/admin/getAdminFeesReportUsecase.ts";
-import { getSellersPerformanceUsecase, toggleSellerStatusUsecase } from "../../../core/usecases/admin/getSellersPerformanceUsecase.ts";
-import { listAdminOrdersUsecase } from "../../../core/usecases/admin/listAdminOrdersUsecase.ts";
-import { exportOrdersCsvUsecase } from "../../../core/usecases/admin/exportOrdersCsvUsecase.ts";
-import { getAdminAlertsUsecase } from "../../../core/usecases/admin/getAdminAlertsUsecase.ts";
+import type { AuthRequest } from "../middlewares/authMiddleware";
+import { getAdminOverviewUsecase } from "../../../core/usecases/admin/getAdminOverviewUsecase";
+import { getAdminFeesReportUsecase } from "../../../core/usecases/admin/getAdminFeesReportUsecase";
+import { getSellersPerformanceUsecase, toggleSellerStatusUsecase } from "../../../core/usecases/admin/getSellersPerformanceUsecase";
+import { listAdminOrdersUsecase } from "../../../core/usecases/admin/listAdminOrdersUsecase";
+import { exportOrdersCsvUsecase } from "../../../core/usecases/admin/exportOrdersCsvUsecase";
+import { getAdminAlertsUsecase } from "../../../core/usecases/admin/getAdminAlertsUsecase";
 
 export async function getAdminOverviewController(req: AuthRequest, res: Response) {
   const data = await getAdminOverviewUsecase();

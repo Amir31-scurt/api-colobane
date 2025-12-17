@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
-import { upload } from "../../files/uploadConfig.ts";
-import { authRequired, isSeller } from "../middlewares/authMiddleware.ts";
+import { upload } from "../../files/uploadConfig";
+import { authRequired, isSeller } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 

@@ -1,5 +1,5 @@
-// src/core/usecases/promotions/assignPromotionToCategories.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/promotions/assignPromotionToCategories
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function assignPromotionToCategoriesUsecase(
   promotionId: number,

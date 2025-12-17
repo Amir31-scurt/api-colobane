@@ -7,8 +7,8 @@ import {
   refreshTokenController,
   requestPasswordResetController,
   resetPasswordController
-} from "../controllers/authController.ts";
-import { authRequired } from "../middlewares/authMiddleware.ts";
+} from "../controllers/authController";
+import { authRequired } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 

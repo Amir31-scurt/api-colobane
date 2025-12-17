@@ -1,11 +1,11 @@
-// src/infrastructure/http/controllers/authController.ts
+// src/infrastructure/http/controllers/authController
 import type { Request, Response } from "express";
-import { registerUser } from "../../../core/usecases/users/registerUser.ts";
-import { loginUser } from "../../../core/usecases/auth/login.ts";
-import { type AuthRequest } from "../middlewares/authMiddleware.ts";
-import { refreshTokenUsecase } from "../../../core/usecases/auth/refreshTokenUsecase.ts";
-import { requestPasswordResetUsecase } from "../../../core/usecases/auth/requestPasswordResetUsecase.ts";
-import { resetPasswordUsecase } from "../../../core/usecases/auth/resetPasswordUsecase.ts";
+import { registerUser } from "../../../core/usecases/users/registerUser";
+import { loginUser } from "../../../core/usecases/auth/login";
+import { type AuthRequest } from "../middlewares/authMiddleware";
+import { refreshTokenUsecase } from "../../../core/usecases/auth/refreshTokenUsecase";
+import { requestPasswordResetUsecase } from "../../../core/usecases/auth/requestPasswordResetUsecase";
+import { resetPasswordUsecase } from "../../../core/usecases/auth/resetPasswordUsecase";
 
 export async function registerController(req: Request, res: Response) {
   try {

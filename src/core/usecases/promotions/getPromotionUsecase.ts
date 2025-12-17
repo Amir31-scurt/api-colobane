@@ -1,4 +1,4 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getPromotionUsecase(id: number) {
   const promo = await prisma.promotion.findUnique({

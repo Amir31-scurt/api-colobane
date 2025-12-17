@@ -1,5 +1,5 @@
-// src/core/usecases/products/searchProductsUsecase.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/products/searchProductsUsecase
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function searchProductsUsecase(q: string) {
   return prisma.product.findMany({

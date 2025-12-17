@@ -1,5 +1,5 @@
-// src/core/usecases/brands/listBrands.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
+// src/core/usecases/brands/listBrands
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function listBrandsUsecase() {
   return prisma.brand.findMany({

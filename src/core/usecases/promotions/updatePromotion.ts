@@ -1,6 +1,6 @@
-// src/core/usecases/promotions/updatePromotion.ts
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
-import type { DiscountType } from "./createPromotion.ts";
+// src/core/usecases/promotions/updatePromotion
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import type { DiscountType } from "./createPromotion";
 
 export interface UpdatePromotionInput {
   name?: string;

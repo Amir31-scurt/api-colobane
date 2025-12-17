@@ -1,5 +1,5 @@
-import { prisma } from "../../../infrastructure/prisma/prismaClient.ts";
-import { AppliedFee } from "./calculateFeesForOrderUsecase.ts";
+import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { AppliedFee } from "./calculateFeesForOrderUsecase";
 
 export async function saveOrderFeesUsecase(orderId: number, fees: AppliedFee[]) {
   return prisma.feeRecord.createMany({
