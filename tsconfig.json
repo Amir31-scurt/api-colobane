@@ -4,18 +4,17 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     
-    "rootDir": "src",
-    "outDir": "dist",
-
     "strict": true,
+
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,
-    
-    "skipLibCheck": true
+
+    "outDir": "dist"
   },
-  "ts-node": {
-    "esm": true
-  }
+  "include": ["src"]
 }

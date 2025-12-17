@@ -5,6 +5,6 @@ import { adminWorker } from "./infrastructure/jobs/workers/adminWorker.ts";
 
 console.log("✅ Workers Colobane démarrés");
 
-pushWorker.on("failed", (job, err) => console.error("PUSH_JOB_FAILED:", job?.id, err));
-paymentsWorker.on("failed", (job, err) => console.error("PAYMENT_JOB_FAILED:", job?.id, err));
-adminWorker.on("failed", (job, err) => console.error("ADMIN_JOB_FAILED:", job?.id, err));
+pushWorker.on("failed", (job: any, err: any) => console.error("PUSH_JOB_FAILED:", job?.id, err));
+paymentsWorker.on("failed", (job: any, err: any) => console.error("PAYMENT_JOB_FAILED:", job?.id, err));
+adminWorker.on("failed", (job: any, err: any) => console.error("ADMIN_JOB_FAILED:", job?.id, err));

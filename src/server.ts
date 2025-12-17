@@ -23,7 +23,7 @@ import { registerSchedulers } from "./infrastructure/jobs/schedulers.ts";
 
 
 dotenv.config();
-await registerSchedulers();
+// await registerSchedulers();
 const app = express();
 app.use(cors());
 app.use(express.json());

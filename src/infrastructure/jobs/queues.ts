@@ -1,6 +1,7 @@
 import { Queue } from "bullmq";
 import { bullConnection } from "./bullmqConnection.ts";
 
-export const pushQueue = new Queue("pushQueue", bullConnection);
-export const paymentsQueue = new Queue("paymentsQueue", bullConnection);
-export const adminQueue = new Queue("adminQueue", bullConnection);
+export const pushQueue = null;
+export const paymentsQueue = null;
+export const adminQueue = null;
+
