@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import authRoutes from "./infrastructure/http/routes/authRoutes";
 import brandRoutes from "./infrastructure/http/routes/brandRoutes";
 import productRoutes from "./infrastructure/http/routes/productRoutes";
@@ -23,8 +22,10 @@ import { registerSchedulers } from "./infrastructure/jobs/schedulers";
 import { prisma } from "./infrastructure/prisma/prismaClient";
 
 
-dotenv.config();
-// await registerSchedulers();
+if (process.env.NODE_ENV !== "production") {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("dotenv").config();
+}
 const app = express();
 app.use(cors());
 app.use(express.json());
