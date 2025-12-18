@@ -54,6 +54,14 @@ app.use("/api/search", searchRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/push", pushRoutes);
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "colobane-api",
+    timestamp: new Date().toISOString()
+  });
+});
+
 
 app.use(
   express.json({
