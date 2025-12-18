@@ -20,6 +20,7 @@ import uploadRoutes from "./infrastructure/http/routes/uploadRoutes";
 import pushRoutes from "./infrastructure/http/routes/pushRoutes";
 import { apiRateLimiter } from "./infrastructure/http/middlewares/rateLimitMiddleware";
 import { registerSchedulers } from "./infrastructure/jobs/schedulers";
+import { prisma } from "./infrastructure/prisma/prismaClient";
 
 
 dotenv.config();
@@ -67,3 +68,10 @@ const port = process.env.PORT || 4000;
 app.listen(port, () =>
   console.log(`🚀 Colobane TS backend running on http://localhost:${port}`)
 );
+
+prisma.$connect()
+  .then(() => console.log("✅ Database connected"))
+  .catch((err: any) => {
+    console.error("❌ Database connection failed");
+    console.error(err);
+  });
