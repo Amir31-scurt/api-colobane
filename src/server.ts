@@ -17,8 +17,9 @@ import searchRoutes from "./infrastructure/http/routes/searchRoutes";
 import promotionRoutes from "./infrastructure/http/routes/promotionRoutes";
 import uploadRoutes from "./infrastructure/http/routes/uploadRoutes";
 import pushRoutes from "./infrastructure/http/routes/pushRoutes";
-import { apiRateLimiter } from "./infrastructure/http/middlewares/rateLimitMiddleware";
-import { registerSchedulers } from "./infrastructure/jobs/schedulers";
+import helmet from "helmet";
+import { corsOptions } from "./config/cors";
+import { apiRateLimiter } from "./config/rateLimit";
 import { prisma } from "./infrastructure/prisma/prismaClient";
 
 
@@ -27,7 +28,10 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 const app = express();
-app.use(cors());
+
+app.use(helmet());
+app.use(cors(corsOptions));
+app.use(apiRateLimiter);
 app.use(express.json());
 
 
@@ -41,6 +45,19 @@ app.get("/", async (_, res) => {
   res.json({ status: "ok", message: "API Colobane TS opérationnelle" });
 });
 
+
+/* =======================
+   HANDLER GLOBAL ERREURS
+======================= */
+
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error("API Error:", err.message);
+
+  res.status(500).json({
+    status: "error",
+    message: "Erreur interne du serveur",
+  });
+});
 
 app.use(apiRateLimiter);
 app.use("/api/upload", uploadRoutes);
