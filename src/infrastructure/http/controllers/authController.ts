@@ -6,6 +6,8 @@ import { type AuthRequest } from "../middlewares/authMiddleware";
 import { refreshTokenUsecase } from "../../../core/usecases/auth/refreshTokenUsecase";
 import { requestPasswordResetUsecase } from "../../../core/usecases/auth/requestPasswordResetUsecase";
 import { resetPasswordUsecase } from "../../../core/usecases/auth/resetPasswordUsecase";
+import { verifyOtpUseCase } from "../../../core/usecases/auth/verifyOtpUsecase";
+import { requestOtpUseCase } from "../../../core/usecases/auth/requestOtpUsecase";
 
 export async function registerController(req: Request, res: Response) {
   try {
@@ -89,4 +91,31 @@ export async function resetPasswordController(req: AuthRequest, res: Response) {
       console.error(err);
       return res.status(500).json({ message: "Erreur interne" });
     }
+}
+
+export async function requestOtpController(req: Request, res: Response) {
+  const { phone } = req.body;
+
+  if (!phone) {
+    return res.status(400).json({ message: "Numéro requis" });
+  }
+
+  await requestOtpUseCase(phone);
+
+  res.json({ status: "ok", message: "OTP envoyé" });
+}
+
+export async function verifyOtpController(req: Request, res: Response) {
+  const { phone, code } = req.body;
+
+  if (!phone || !code) {
+    return res.status(400).json({ message: "Données manquantes" });
+  }
+
+  const tokens = await verifyOtpUseCase(phone, code);
+
+  res.json({
+    status: "ok",
+    ...tokens,
+  });
 }

@@ -8,7 +8,7 @@ dotenv.config();
 
 // L’interface DOIT être exportée correctement
 export interface AuthRequest extends Request {
-  user?: { id: number; email: string; role: string };
+  user?: { id: number; email: string; role: string, phone: string };
 }
 
 // Middleware d'authentification
@@ -26,7 +26,8 @@ export function authRequired(req: AuthRequest, res: Response, next: NextFunction
     req.user = {
       id: payload.id,
       email: payload.email,
-      role: payload.role
+      role: payload.role,
+      phone: payload.phone
     };
     return next();
   } catch (err) {

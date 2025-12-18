@@ -8,6 +8,7 @@ interface JwtPayload {
   id: number;
   email: string;
   role: string;
+  phone: string
 }
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;

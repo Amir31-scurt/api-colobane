@@ -6,7 +6,9 @@ import {
   meController,
   refreshTokenController,
   requestPasswordResetController,
-  resetPasswordController
+  resetPasswordController,
+  verifyOtpController,
+  requestOtpController
 } from "../controllers/authController";
 import { authRequired } from "../middlewares/authMiddleware";
 
@@ -21,5 +23,8 @@ router.post("/refresh-token", refreshTokenController);
 
 router.post("/request-password-reset", requestPasswordResetController);
 router.post("/reset-password", resetPasswordController);
+
+router.post("/otp/request", requestOtpController);
+router.post("/otp/verify", verifyOtpController);
 
 export default router;

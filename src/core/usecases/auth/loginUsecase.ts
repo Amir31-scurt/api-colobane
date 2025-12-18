@@ -23,7 +23,8 @@ export async function loginUsecase(email: string, password: string) {
   const payload = {
     id: user.id,
     email: user.email,
-    role: user.role
+    role: user.role,
+    phone: user.phone
   };
 
   const accessToken = createAccessToken(payload);

@@ -22,7 +22,8 @@ export async function refreshTokenUsecase(refreshToken: string) {
   const newPayload = {
     id: payload.id,
     email: payload.email,
-    role: payload.role
+    role: payload.role,
+    phone: payload.phone
   };
 
   const newAccessToken = createAccessToken(newPayload);
