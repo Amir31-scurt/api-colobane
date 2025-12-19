@@ -1,5 +1,5 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
-import type { OrderStatus } from "@prisma/client";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { sendNotification } from "../../services/notificationService";
 import { buildNotificationContent } from "../../factories/notificationFactory";
 import { NotificationType } from "../../constants/notificationTypes";
@@ -9,19 +9,82 @@ interface UpdateOrderStatusInput {
     status: OrderStatus;
     changedByUserId?: number;
     note?: string;
+    nextStatus: any
 }
 
 export async function updateOrderStatusUsecase(input: UpdateOrderStatusInput) {
-    const { orderId, status, changedByUserId, note } = input;
+    const { orderId, nextStatus, changedByUserId, note } = input;      
   
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) throw new Error("ORDER_NOT_FOUND");
+
+    const currentStatus = order.status;
+
+    // ❌ États finaux bloqués
+    if (
+        currentStatus === OrderStatus.COMPLETED ||
+        currentStatus === OrderStatus.CANCELLED
+    ) {
+        throw new Error("ORDER_ALREADY_FINALIZED");
+    }
+
+    // 🔒 Matrice officielle des transitions autorisées
+    const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
+        PENDING: [OrderStatus.PAID, OrderStatus.CANCELLED],
+        PAID: [OrderStatus.PROCESSING],
+        PROCESSING: [OrderStatus.SHIPPED],
+        SHIPPED: [OrderStatus.DELIVERED],
+        DELIVERED: [OrderStatus.COMPLETED],
+        COMPLETED: [],
+        CANCELLED: []
+    };
+
+    const allowedNextStatuses = allowedTransitions[currentStatus];
+
+    if (!allowedNextStatuses.includes(nextStatus)) {
+        throw new Error(
+        `INVALID_ORDER_STATUS_TRANSITION: ${currentStatus} → ${nextStatus}`
+        );
+    }
+
+    // 🔐 Règle critique : passage à PAID uniquement si paiement PAID
+    if (nextStatus === OrderStatus.PAID) {
+        const newOrder = await prisma.order.findUnique({ 
+            where: { id: orderId },
+            include: { Payment: true }
+        });
+        if(!newOrder){throw new Error("NO_ORDER_MATCHES_THE_ID")}
+
+        const hasPaidPayment = newOrder.Payment.some(
+            (p: any) => p.status === PaymentStatus.PAID
+        );
+
+        if (!hasPaidPayment) {
+        throw new Error("ORDER_CANNOT_BE_MARKED_PAID_WITHOUT_PAYMENT");
+        }
+    }
+
+    const actor = await prisma.order.findUnique({ 
+        where: { id: order.userId },
+        include: { user: true }
+    });
+
+    const actorRole = actor?.user.role
+
+    // 🔐 Seul l’ADMIN peut annuler après paiement
+    if (
+        nextStatus === OrderStatus.CANCELLED &&
+        currentStatus !== OrderStatus.PENDING &&
+        actorRole !== "ADMIN"
+    ) {
+        throw new Error("ONLY_ADMIN_CAN_CANCEL_AFTER_PAYMENT");
+    }
   
     const updated = await prisma.$transaction(async (tx) => {
       const orderUpdated = await tx.order.update({
         where: { id: orderId },
         data: {
-          status,
+          status: nextStatus,
           paidAt:
             status === "PAID" && !order.paidAt
               ? new Date()
@@ -32,7 +95,7 @@ export async function updateOrderStatusUsecase(input: UpdateOrderStatusInput) {
       await tx.orderStatusHistory.create({
         data: {
           orderId: orderId,
-          status,
+          status: nextStatus,
           note: note ?? null,
           changedBy: changedByUserId ?? null
         }
@@ -41,7 +104,7 @@ export async function updateOrderStatusUsecase(input: UpdateOrderStatusInput) {
       const content = buildNotificationContent({
         type: NotificationType.ORDER_STATUS_CHANGED,
         orderId,
-        status
+        status: nextStatus,
       });
 
       await sendNotification({
@@ -49,7 +112,7 @@ export async function updateOrderStatusUsecase(input: UpdateOrderStatusInput) {
         type: NotificationType.ORDER_STATUS_CHANGED,
         title: content.title,
         message: content.message,
-        metadata: { orderId, status }
+        metadata: { orderId, status: nextStatus}
       });
   
       return orderUpdated;

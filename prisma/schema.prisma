@@ -257,7 +257,7 @@ model Payment {
   order        Order           @relation(fields: [orderId], references: [id])
   orderId      Int
   provider     PaymentProvider
-  status       PaymentStatus   @default(PENDING)
+  status       PaymentStatus   @default(INITIATED)
   amount       Float
   currency     String          @default("XOF")
   providerRef  String?         @unique
