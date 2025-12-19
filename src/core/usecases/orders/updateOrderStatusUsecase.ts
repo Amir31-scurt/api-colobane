@@ -9,7 +9,7 @@ interface UpdateOrderStatusInput {
     status: OrderStatus;
     changedByUserId?: number;
     note?: string;
-    nextStatus: any
+    nextStatus?: any
 }
 
 export async function updateOrderStatusUsecase(input: UpdateOrderStatusInput) {
