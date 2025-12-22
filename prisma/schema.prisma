@@ -230,7 +230,7 @@ model Product {
   stock        Int      @default(0)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
-  pdatedAt     DateTime @updatedAt
+  updatedAt     DateTime @updatedAt
 
   images   ProductImage[]
   variants ProductVariant[]
