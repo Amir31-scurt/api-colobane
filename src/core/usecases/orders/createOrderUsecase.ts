@@ -138,7 +138,8 @@ export async function createOrderUsecase(input: CreateOrderInput) {
       totalAmount: total,
       items: {
         create: orderItemsData
-      }
+      },
+      status: "PENDING"
     },
     include: {
       items: true

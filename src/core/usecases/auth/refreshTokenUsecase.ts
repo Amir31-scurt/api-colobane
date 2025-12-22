@@ -13,7 +13,7 @@ export async function refreshTokenUsecase(refreshToken: string) {
     include: { user: true }
   });
 
-  if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+  if (!stored || stored.revoked || stored.revokedAt || stored.expiresAt < new Date()) {
     throw new Error("INVALID_REFRESH_TOKEN");
   }
 

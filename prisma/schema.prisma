@@ -11,11 +11,12 @@ datasource db {
 model User {
   id           Int            @id @default(autoincrement())
   name         String
-  email        String         @unique
+  email        String?        @unique
   phone        String         @unique
   password     String
   role         UserRole       @default(CUSTOMER)
   createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   brands       Brand[]
   orders       Order[]
   Notification Notification[]
@@ -23,25 +24,43 @@ model User {
   // si livreur
   deliverer Deliverer?
 
+  emailVerified Boolean @default(false)
+  phoneVerified Boolean @default(false)
+
   emailVerifiedAt        DateTime?
   resetPasswordToken     String?
   resetPasswordExpiresAt DateTime?
   refreshTokens          RefreshToken[]
   PushToken              PushToken[]
   otps                   OTPCode[]
-  isActive Boolean @default(false)
+  emailTokens            EmailVerificationToken[]
+  isActive               Boolean                  @default(false)
+  isBlocked              Boolean                  @default(false)
+  AuditLog               AuditLog[]
+}
+
+model EmailVerificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 model OTPCode {
-  id         Int       @id @default(autoincrement())
-  code       String
+  id        Int      @id @default(autoincrement())
+  code      String
   expiresAt DateTime
-  used       Boolean   @default(false)
+  used      Boolean  @default(false)
 
-  userId     Int
-  user       User      @relation(fields: [userId], references: [id])
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
 
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
 model DeliveryZone {
@@ -104,7 +123,22 @@ model RefreshToken {
   userId    Int
   createdAt DateTime  @default(now())
   expiresAt DateTime
+  revoked   Boolean   @default(false)
   revokedAt DateTime?
+}
+
+model AuditLog {
+  id         Int         @id @default(autoincrement())
+  action     AuditAction
+  actorId    Int
+  actor      User        @relation(fields: [actorId], references: [id])
+  entityType String
+  entityId   String
+  meta       Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
 }
 
 model Category {
@@ -373,4 +407,15 @@ enum FeeTarget {
   PRODUCT
   SELLER
   PAYMENT_PROVIDER
+}
+
+enum AuditAction {
+  ADMIN_LOGIN
+  ADMIN_LOGOUT
+  ORDER_STATUS_UPDATED
+  PRODUCT_UPDATED
+  PRODUCT_TOGGLED
+  USER_ROLE_UPDATED
+  USER_BLOCKED
+  USER_UNBLOCKED
 }

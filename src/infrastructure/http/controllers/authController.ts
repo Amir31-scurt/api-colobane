@@ -8,6 +8,7 @@ import { requestPasswordResetUsecase } from "../../../core/usecases/auth/request
 import { resetPasswordUsecase } from "../../../core/usecases/auth/resetPasswordUsecase";
 import { verifyOtpUseCase } from "../../../core/usecases/auth/verifyOtpUsecase";
 import { requestOtpUseCase } from "../../../core/usecases/auth/requestOtpUsecase";
+import { logoutUseCase } from "../../../core/usecases/auth/logoutUsecase";
 
 export async function registerController(req: Request, res: Response) {
   try {
@@ -71,7 +72,7 @@ export async function refreshTokenController(req: AuthRequest, res: Response) {
     }
 }
   
-    export async function requestPasswordResetController(req: AuthRequest, res: Response) {
+export async function requestPasswordResetController(req: AuthRequest, res: Response) {
     const { email } = req.body;
     await requestPasswordResetUsecase(email);
     return res.json({
@@ -117,5 +118,22 @@ export async function verifyOtpController(req: Request, res: Response) {
   res.json({
     status: "ok",
     ...tokens,
+  });
+}
+
+export async function logoutController(req: Request, res: Response) {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({
+      message: "refreshToken requis",
+    });
+  }
+
+  await logoutUseCase(refreshToken);
+
+  return res.status(200).json({
+    status: "ok",
+    message: "Déconnexion réussie",
   });
 }

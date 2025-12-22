@@ -28,7 +28,7 @@ export async function verifyOtpUseCase(phone: string, code: string) {
   });
 
   return {
-    accessToken: signAccessToken({ userId: user.id }),
+    accessToken: signAccessToken({ userId: user.id, role: user.role }),
     refreshToken: signRefreshToken({ userId: user.id }),
   };
 }

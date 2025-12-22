@@ -8,7 +8,8 @@ import {
   requestPasswordResetController,
   resetPasswordController,
   verifyOtpController,
-  requestOtpController
+  requestOtpController,
+  logoutController
 } from "../controllers/authController";
 import { authRequired } from "../middlewares/authMiddleware";
 
@@ -26,5 +27,7 @@ router.post("/reset-password", resetPasswordController);
 
 router.post("/otp/request", requestOtpController);
 router.post("/otp/verify", verifyOtpController);
+
+router.post("/logout", logoutController);
 
 export default router;

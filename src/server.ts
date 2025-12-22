@@ -17,6 +17,7 @@ import searchRoutes from "./infrastructure/http/routes/searchRoutes";
 import promotionRoutes from "./infrastructure/http/routes/promotionRoutes";
 import uploadRoutes from "./infrastructure/http/routes/uploadRoutes";
 import pushRoutes from "./infrastructure/http/routes/pushRoutes";
+import emailRoutes from "./infrastructure/http/routes/emailRoutes";
 import helmet from "helmet";
 import { corsOptions } from "./config/cors";
 import { apiRateLimiter } from "./config/rateLimit";
@@ -64,7 +65,8 @@ app.use(apiRateLimiter);
 app.use("/api/upload", uploadRoutes);
 app.use("/uploads", express.static("uploads"));
 
-app.use("/api/admin", adminRoutes);
+app.use("/admin", adminRoutes);
+app.use("/email", emailRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);

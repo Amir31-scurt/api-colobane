@@ -11,7 +11,7 @@ export async function loginUsecase(email: string, password: string) {
     where: { email }
   });
 
-  if (!user) {
+  if (!user || !user.email) {
     throw new Error("INVALID_CREDENTIALS");
   }
 
