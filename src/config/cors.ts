@@ -2,6 +2,7 @@ import { CorsOptions } from "cors";
 
 const allowedOrigins = [
   "http://localhost:8081",          // Expo local
+  "http://localhost:3000",          // Expo local
   "http://localhost:19000",         // Expo legacy
   "https://mycolobane.com",
   "https://www.mycolobane.com",
