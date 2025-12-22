@@ -17,6 +17,7 @@ export async function adminListProductsUsecase(params: {
     where.OR = [
       { name: { contains: q, mode: "insensitive" } },
       { slug: { contains: q, mode: "insensitive" } },
+      { brand: { name: { contains: q, mode: "insensitive" } } },
     ];
   }
 
@@ -36,6 +37,7 @@ export async function adminListProductsUsecase(params: {
         isActive: true,
         imageUrl: true,
         createdAt: true,
+        brand: { select: { id: true, name: true, slug: true } },
       },
     }),
   ]);

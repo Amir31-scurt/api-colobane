@@ -5,20 +5,27 @@ export async function adminListOrdersUsecase(params: {
   page: number;
   pageSize: number;
   status?: string;
-  q?: string;
+  q?: string; // recherche par id, email, phone, nom
 }) {
   const { page, pageSize, status, q } = params;
   const skip = (page - 1) * pageSize;
 
   const where: any = {};
-  if (status) where.status = status;
+  if (status) where.status = status as any;
 
   if (q) {
     const qNum = Number(q);
     where.OR = [
       ...(Number.isFinite(qNum) ? [{ id: qNum }] : []),
-      { customerEmail: { contains: q, mode: "insensitive" } },
-      { customerPhone: { contains: q, mode: "insensitive" } },
+      {
+        user: {
+          OR: [
+            { email: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q, mode: "insensitive" } },
+            { name: { contains: q, mode: "insensitive" } },
+          ],
+        },
+      },
     ];
   }
 
@@ -32,13 +39,19 @@ export async function adminListOrdersUsecase(params: {
       select: {
         id: true,
         status: true,
-        Payment: true,
         totalAmount: true,
-        // serviceFee: true,
+        paidAt: true,
         deliveryFee: true,
-        user: true,
-        // customerPhone: true,
         createdAt: true,
+        user: {
+          select: { id: true, name: true, email: true, phone: true },
+        },
+        // Relation s'appelle "Payment" (capital P) dans ton schema
+        Payment: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { status: true, provider: true, amount: true, currency: true, createdAt: true },
+        },
       },
     }),
   ]);

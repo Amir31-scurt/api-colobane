@@ -5,7 +5,7 @@ export async function adminListUsersUsecase(params: {
   page: number;
   pageSize: number;
   q?: string;
-  role?: "USER" | "SELLER" | "ADMIN";
+  role?: "CUSTOMER" | "SELLER" | "ADMIN" | "DELIVERER";
 }) {
   const { page, pageSize, q, role } = params;
   const skip = (page - 1) * pageSize;
@@ -17,6 +17,7 @@ export async function adminListUsersUsecase(params: {
     where.OR = [
       { email: { contains: q, mode: "insensitive" } },
       { phone: { contains: q, mode: "insensitive" } },
+      { name: { contains: q, mode: "insensitive" } },
     ];
   }
 
@@ -29,10 +30,14 @@ export async function adminListUsersUsecase(params: {
       take: pageSize,
       select: {
         id: true,
+        name: true,
         email: true,
         phone: true,
         role: true,
         isBlocked: true,
+        isActive: true,
+        emailVerified: true,
+        phoneVerified: true,
         emailVerifiedAt: true,
         createdAt: true,
       },

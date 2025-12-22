@@ -32,13 +32,14 @@ export async function adminGetOrderController(req: Request, res: Response) {
 export async function adminUpdateOrderStatusController(req: Request, res: Response) {
   try {
     const orderId = Number(req.params.id);
-    const { status } = req.body || {};
+    const { status, note } = req.body || {};
     if (!Number.isFinite(orderId) || !status) return res.status(400).json({ error: "INVALID_BODY" });
 
     const updated = await adminUpdateOrderStatusUsecase({
       actorId: req.auth!.userId,
       orderId,
-      status
+      status: String(status),
+      note: note ? String(note) : undefined,
     });
 
     return res.json(updated);
