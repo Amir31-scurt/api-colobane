@@ -26,32 +26,30 @@ router.get("/orders", authRequired, isAdmin, listAdminOrdersController);
 router.get("/orders/export/csv", authRequired, isAdmin, exportOrdersCsvController);
 router.put("/sellers/:sellerId/status", authRequired, isAdmin, toggleSellerStatusController);
 router.get("/alerts", authRequired, isAdmin, getAdminAlertsController);
-
-export const adminRoutes = Router();
 // Public (admin login)
-adminRoutes.post("/auth/login", adminLoginController);
+router.post("/auth/login", adminLoginController);
 
 // Protected (admin only)
-adminRoutes.use(requireAuth, requireRole("ADMIN"));
+router.use(requireAuth, requireRole("ADMIN"));
 
-adminRoutes.post("/auth/logout", adminLogoutController);
+router.post("/auth/logout", adminLogoutController);
 
-adminRoutes.get("/stats", adminStatsController);
+router.get("/stats", adminStatsController);
 
 // Orders
-adminRoutes.get("/orders", adminListOrdersController);
-adminRoutes.get("/orders/:id", adminGetOrderController);
-adminRoutes.patch("/orders/:id/status", adminUpdateOrderStatusController);
+router.get("/orders", adminListOrdersController);
+router.get("/orders/:id", adminGetOrderController);
+router.patch("/orders/:id/status", adminUpdateOrderStatusController);
 
 // Products
-adminRoutes.get("/products", adminListProductsController);
-adminRoutes.patch("/products/:id", adminUpdateProductController);
-adminRoutes.patch("/products/:id/active", adminToggleProductActiveController);
+router.get("/products", adminListProductsController);
+router.patch("/products/:id", adminUpdateProductController);
+router.patch("/products/:id/active", adminToggleProductActiveController);
 
 // Users
-adminRoutes.get("/users", adminListUsersController);
-adminRoutes.patch("/users/:id/role", adminUpdateUserRoleController);
-adminRoutes.patch("/users/:id/block", adminToggleUserBlockController);
+router.get("/users", adminListUsersController);
+router.patch("/users/:id/role", adminUpdateUserRoleController);
+router.patch("/users/:id/block", adminToggleUserBlockController);
 
 
 export default router;
