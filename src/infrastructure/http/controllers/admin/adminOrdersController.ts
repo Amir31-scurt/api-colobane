@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { adminListOrdersUsecase } from "../orders/adminListOrdersUsecase";
-import { adminGetOrderUsecase } from "../orders/adminGetOrderUsecase";
-import { adminUpdateOrderStatusUsecase } from "../orders/adminUpdateOrderStatusUsecase";
+import { adminGetOrderUsecase } from "../../../../core/usecases/admin/orders/adminGetOrderUsecase";
+import { adminUpdateOrderStatusUsecase } from "../../../../core/usecases/admin/orders/adminUpdateOrderStatusUsecase";
+import { adminListOrdersUsecase } from "../../../../core/usecases/admin/orders/adminListOrdersUsecase";
 
 export async function adminListOrdersController(req: Request, res: Response) {
   try {
