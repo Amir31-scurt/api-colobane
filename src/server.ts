@@ -60,6 +60,8 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   });
 });
 
+// Add this line
+app.set('trust proxy', 1);
 
 app.use(apiRateLimiter);
 app.use("/api/upload", uploadRoutes);
