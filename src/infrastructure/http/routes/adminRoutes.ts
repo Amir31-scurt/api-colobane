@@ -9,7 +9,7 @@ import {
   toggleSellerStatusController,
   getAdminAlertsController
 } from "../controllers/adminController";
-import { adminLoginController, adminLogoutController } from "../controllers/admin/adminAuthController";
+import { adminLoginController, adminLogoutController, getAdminMeController } from "../controllers/admin/adminAuthController";
 import { requireRole } from "../middlewares/auth/requireRole";
 import { requireAuth } from "../middlewares/auth/requireAuth";
 import { adminStatsController } from "../controllers/admin/adminStatsController";
@@ -29,9 +29,10 @@ router.get("/alerts", authRequired, isAdmin, getAdminAlertsController);
 // Public (admin login)
 router.post("/auth/login", adminLoginController);
 
-// Protected (admin only)
-router.use(requireAuth, requireRole("ADMIN"));
+// Protected (admin & seller)
+router.use(requireAuth, requireRole("ADMIN", "SELLER"));
 
+router.get("/auth/me", getAdminMeController);
 router.post("/auth/logout", adminLogoutController);
 
 router.get("/stats", adminStatsController);
@@ -39,17 +40,19 @@ router.get("/stats", adminStatsController);
 // Orders
 router.get("/orders", adminListOrdersController);
 router.get("/orders/:id", adminGetOrderController);
-router.patch("/orders/:id/status", adminUpdateOrderStatusController);
+router.patch("/orders/:id/status", requireRole("ADMIN"), adminUpdateOrderStatusController);
 
 // Products
 router.get("/products", adminListProductsController);
-router.patch("/products/:id", adminUpdateProductController);
-router.patch("/products/:id/active", adminToggleProductActiveController);
+// Write actions restricted to ADMIN
+router.patch("/products/:id", requireRole("ADMIN"), adminUpdateProductController);
+router.patch("/products/:id/active", requireRole("ADMIN"), adminToggleProductActiveController);
 
 // Users
 router.get("/users", adminListUsersController);
-router.patch("/users/:id/role", adminUpdateUserRoleController);
-router.patch("/users/:id/block", adminToggleUserBlockController);
+// Write actions restricted to ADMIN
+router.patch("/users/:id/role", requireRole("ADMIN"), adminUpdateUserRoleController);
+router.patch("/users/:id/block", requireRole("ADMIN"), adminToggleUserBlockController);
 
 
 export default router;

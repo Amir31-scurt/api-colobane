@@ -14,19 +14,26 @@ export async function adminLoginController(req: Request, res: Response) {
     const code = e?.message || "UNKNOWN";
     const status =
       code === "INVALID_CREDENTIALS" ? 401 :
-      code === "USER_BLOCKED" ? 403 :
-      code === "FORBIDDEN" ? 403 : 400;
+        code === "USER_BLOCKED" ? 403 :
+          code === "FORBIDDEN" ? 403 : 400;
 
     return res.status(status).json({ error: code });
   }
 }
 
 export async function adminLogoutController(req: Request, res: Response) {
+  // Client side just drops cookie/token
+  return res.json({ success: true });
+}
+
+export async function getAdminMeController(req: Request, res: Response) {
   try {
-    const actorId = req.auth!.userId;
-    const result = await adminLogoutUsecase(actorId);
-    return res.json(result);
+    const user = req.auth;
+    return res.json({
+      id: user?.userId,
+      role: user?.role
+    });
   } catch {
-    return res.status(400).json({ error: "UNKNOWN" });
+    return res.status(401).json({ error: "UNAUTHORIZED" });
   }
 }

@@ -10,7 +10,22 @@ export async function adminListOrdersController(req: Request, res: Response) {
     const status = req.query.status ? String(req.query.status) : undefined;
     const q = req.query.q ? String(req.query.q) : undefined;
 
-    const data = await adminListOrdersUsecase({ page, pageSize, status, q });
+    // Nouveaux filtres
+    const minAmount = req.query.minAmount ? Number(req.query.minAmount) : undefined;
+    const maxAmount = req.query.maxAmount ? Number(req.query.maxAmount) : undefined;
+    const startDate = req.query.startDate ? String(req.query.startDate) : undefined;
+    const endDate = req.query.endDate ? String(req.query.endDate) : undefined;
+
+    const data = await adminListOrdersUsecase({
+      page,
+      pageSize,
+      status,
+      q,
+      minAmount,
+      maxAmount,
+      startDate,
+      endDate
+    });
     return res.json(data);
   } catch {
     return res.status(400).json({ error: "UNKNOWN" });

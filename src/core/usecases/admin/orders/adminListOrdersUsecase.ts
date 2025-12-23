@@ -6,12 +6,28 @@ export async function adminListOrdersUsecase(params: {
   pageSize: number;
   status?: string;
   q?: string; // recherche par id, email, phone, nom
+  minAmount?: number;
+  maxAmount?: number;
+  startDate?: string;
+  endDate?: string;
 }) {
-  const { page, pageSize, status, q } = params;
+  const { page, pageSize, status, q, minAmount, maxAmount, startDate, endDate } = params;
   const skip = (page - 1) * pageSize;
 
   const where: any = {};
   if (status) where.status = status as any;
+
+  if (minAmount || maxAmount) {
+    where.totalAmount = {};
+    if (minAmount) where.totalAmount.gte = minAmount;
+    if (maxAmount) where.totalAmount.lte = maxAmount;
+  }
+
+  if (startDate || endDate) {
+    where.createdAt = {};
+    if (startDate) where.createdAt.gte = new Date(startDate);
+    if (endDate) where.createdAt.lte = new Date(endDate);
+  }
 
   if (q) {
     const qNum = Number(q);
@@ -26,6 +42,8 @@ export async function adminListOrdersUsecase(params: {
           ],
         },
       },
+      // Recherche dans la zone de livraison ou adresse
+      { shippingAddress: { contains: q, mode: "insensitive" } },
     ];
   }
 
@@ -43,6 +61,7 @@ export async function adminListOrdersUsecase(params: {
         paidAt: true,
         deliveryFee: true,
         createdAt: true,
+        shippingAddress: true,
         user: {
           select: { id: true, name: true, email: true, phone: true },
         },

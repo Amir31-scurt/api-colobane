@@ -10,8 +10,9 @@ export async function adminListProductsController(req: Request, res: Response) {
     const pageSize = Math.min(100, Math.max(10, Number(req.query.pageSize || 20)));
     const q = req.query.q ? String(req.query.q) : undefined;
     const isActive = req.query.isActive === undefined ? undefined : String(req.query.isActive) === "true";
+    const stockStatus = req.query.stockStatus ? String(req.query.stockStatus) as "IN_STOCK" | "OUT_OF_STOCK" : undefined;
 
-    const data = await adminListProductsUsecase({ page, pageSize, q, isActive });
+    const data = await adminListProductsUsecase({ page, pageSize, q, isActive, stockStatus });
     return res.json(data);
   } catch {
     return res.status(400).json({ error: "UNKNOWN" });
