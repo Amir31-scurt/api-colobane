@@ -60,5 +60,10 @@ router.get("/users", adminListUsersController);
 router.patch("/users/:id/role", requireRole("ADMIN"), adminUpdateUserRoleController);
 router.patch("/users/:id/block", requireRole("ADMIN"), adminToggleUserBlockController);
 
+// Delivery Zones
+import { adminCreateDeliveryZoneController, adminListDeliveryZonesController } from "../controllers/admin/adminDeliveryController";
+router.post("/delivery/zones", requireRole("ADMIN"), adminCreateDeliveryZoneController);
+router.get("/delivery/zones", requireRole("ADMIN"), adminListDeliveryZonesController);
+
 
 export default router;

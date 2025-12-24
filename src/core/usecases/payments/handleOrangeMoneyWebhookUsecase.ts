@@ -28,10 +28,10 @@ export async function handleOrangeMoneyWebhookUsecase(
 
   if (payload.status === "SUCCESS") {
     const order = await prisma.order.findUnique({
-        where: { id: payment.orderId }
+      where: { id: payment.orderId }
     });
     if (!order) {
-        throw new Error("ORDER_NOT_FOUND");
+      throw new Error("ORDER_NOT_FOUND");
     }
     await prisma.$transaction([
       prisma.payment.update({
@@ -51,20 +51,20 @@ export async function handleOrangeMoneyWebhookUsecase(
     ]);
 
     const content = buildNotificationContent({
-        type: NotificationType.ORDER_PAID,
-        orderId: payment.orderId,
-        status
-      });
-      
-      await sendNotification({
-        userId: order.userId,
-        type: NotificationType.ORDER_PAID,
-        title: content.title,
-        message: content.message,
-        metadata: { orderId : payment.orderId, status }
-      });
+      type: NotificationType.ORDER_PAID,
+      orderId: payment.orderId,
+      status
+    });
 
-    const fees = await calculateFeesForOrderUsecase(payment.orderId, "WAVE");
+    await sendNotification({
+      userId: order.userId,
+      type: NotificationType.ORDER_PAID,
+      title: content.title,
+      message: content.message,
+      metadata: { orderId: payment.orderId, status }
+    });
+
+    const fees = await calculateFeesForOrderUsecase(payment.orderId, "ORANGE_MONEY");
     await saveOrderFeesUsecase(payment.orderId, fees);
   } else {
     await prisma.payment.update({
