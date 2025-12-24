@@ -21,4 +21,8 @@ router.patch("/products/:id", authRequired, isSeller, ensureProductOwnership, se
 // Orders
 router.get("/orders", authRequired, isSeller, sellerListOrdersController);
 
+// Finances
+import { getSellerFinances } from "../controllers/seller/sellerFinancesController";
+router.get("/finances", authRequired, isSeller, getSellerFinances);
+
 export default router;

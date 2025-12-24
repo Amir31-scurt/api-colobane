@@ -8,47 +8,62 @@ export interface AppliedFee {
   value: number;
   appliedAmount: number;
   feeId?: number;
+  sellerId?: number;
 }
 
 export async function calculateFeesForOrderUsecase(orderId: number, paymentProvider?: string): Promise<AppliedFee[]> {
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: {
+        include: {
+          product: {
+            include: {
+              brand: true
+            }
+          }
+        }
+      }
+    }
+  });
   if (!order) throw new Error("ORDER_NOT_FOUND");
 
-  const fees = await prisma.marketplaceFee.findMany({ where: { isActive: true } });
-
+  const feesConfig = await prisma.marketplaceFee.findMany({ where: { isActive: true } });
   const applied: AppliedFee[] = [];
 
-  for (const fee of fees) {
-    let appliedAmount = 0;
+  // Group items by seller
+  const itemsBySeller: Record<number, any[]> = {};
+  for (const item of order.items) {
+    const sellerId = item.product.brand.ownerId;
+    if (!itemsBySeller[sellerId]) itemsBySeller[sellerId] = [];
+    itemsBySeller[sellerId].push(item);
+  }
 
-    if (fee.target === "ORDER") {
-      if (fee.type === "PERCENTAGE") {
-        appliedAmount = order.totalAmount * (fee.value / 100);
-      } else {
+  for (const sellerIdStr in itemsBySeller) {
+    const sellerId = parseInt(sellerIdStr);
+    const items = itemsBySeller[sellerId];
+    const sellerTotal = items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
+
+    for (const fee of feesConfig) {
+      let appliedAmount = 0;
+
+      if ((fee.target === "ORDER" || fee.target === "SELLER") && fee.type === "PERCENTAGE") {
+        appliedAmount = sellerTotal * (fee.value / 100);
+      } else if (fee.target === "SELLER" && fee.type === "FIXED") {
         appliedAmount = fee.value;
       }
-    }
 
-    if (fee.target === "PAYMENT_PROVIDER") {
-      if (paymentProvider === "WAVE" || paymentProvider === "ORANGE_MONEY") {
-        appliedAmount = fee.value;
+      if (appliedAmount > 0) {
+        applied.push({
+          feeId: fee.id,
+          name: fee.name,
+          type: fee.type,
+          target: fee.target,
+          value: fee.value,
+          appliedAmount,
+          sellerId
+        });
       }
-    }
-
-    if (fee.target === "SELLER") {
-      // optional future feature
-      continue;
-    }
-
-    if (appliedAmount > 0) {
-      applied.push({
-        feeId: fee.id,
-        name: fee.name,
-        type: fee.type,
-        target: fee.target,
-        value: fee.value,
-        appliedAmount
-      });
     }
   }
 

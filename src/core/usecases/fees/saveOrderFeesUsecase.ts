@@ -10,7 +10,8 @@ export async function saveOrderFeesUsecase(orderId: number, fees: AppliedFee[]) 
       type: f.type,
       target: f.target,
       value: f.value,
-      appliedAmount: f.appliedAmount
+      appliedAmount: f.appliedAmount,
+      sellerId: f.sellerId ?? null
     }))
   });
 }

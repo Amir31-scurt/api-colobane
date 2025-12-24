@@ -37,6 +37,8 @@ model User {
   isActive               Boolean                  @default(false)
   isBlocked              Boolean                  @default(false)
   AuditLog               AuditLog[]
+  Payout                 Payout[]                 @relation("SellerPayouts")
+  FeeRecord              FeeRecord[]              @relation("SellerFees")
 }
 
 model EmailVerificationToken {
@@ -333,6 +335,9 @@ model FeeRecord {
   feeId Int?
   fee   MarketplaceFee? @relation(fields: [feeId], references: [id])
 
+  sellerId Int? // New: track which seller this fee applies to
+  seller   User? @relation("SellerFees", fields: [sellerId], references: [id])
+
   name          String // copie du nom pour audit
   type          FeeType
   target        FeeTarget
@@ -340,6 +345,26 @@ model FeeRecord {
   appliedAmount Float // montant final appliqué à cette commande
 
   createdAt DateTime @default(now())
+}
+
+model Payout {
+  id          Int          @id @default(autoincrement())
+  sellerId    Int
+  seller      User         @relation("SellerPayouts", fields: [sellerId], references: [id])
+  amount      Float
+  status      PayoutStatus @default(PENDING)
+  provider    String? // ex: "Wave", "OM", "Bank Transfer"
+  reference   String? @unique
+  note        String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
 }
 
 model PushToken {

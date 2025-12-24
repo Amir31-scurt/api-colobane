@@ -21,6 +21,12 @@ export function buildNotificationContent(payload: NotificationPayload) {
         message: `Le paiement de la commande #${payload.orderId} a été confirmé.`
       };
 
+    case NotificationType.ORDER_SHIPPED:
+      return {
+        title: "Commande expédiée",
+        message: `Votre commande #${payload.orderId} a été expédiée.`
+      };
+
     case NotificationType.ORDER_STATUS_CHANGED:
       return {
         title: "Statut de commande mis à jour",

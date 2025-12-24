@@ -1,5 +1,6 @@
 import { PaymentStatus } from "@prisma/client";
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { sendNotification } from "../../services/notificationService";
 
 export interface ConfirmPaymentInput {
   paymentId: number;
@@ -35,16 +36,15 @@ export async function confirmPaymentUsecase(input: ConfirmPaymentInput) {
     });
 
     // On peut aussi créer une notification
-    await prisma.notification.create({
-      data: {
-        userId: payment.order.userId,
-        type: "ORDER_PAID",
-        title: "Paiement confirmé",
-        message: `Votre commande #${payment.orderId} a été payée avec succès.`,
-        metadata: {
-          orderId: payment.orderId,
-          paymentId: payment.id
-        }
+    // On peut aussi créer une notification
+    await sendNotification({
+      userId: payment.order.userId,
+      type: "ORDER_PAID",
+      title: "Paiement confirmé",
+      message: `Votre commande #${payment.orderId} a été payée avec succès.`,
+      metadata: {
+        orderId: payment.orderId,
+        paymentId: payment.id
       }
     });
   }

@@ -79,29 +79,29 @@ export async function createOrderUsecase(input: CreateOrderInput) {
       }
     } else {
       if (product.stock < item.quantity) {
-        
-          if (product.stock <= 5) {
-            const content = buildNotificationContent({
-                type: NotificationType.LOW_STOCK,
-                orderId: product.id,
-                productName: product.name
-              });
-              
-              await sendNotification({
-                userId: product.brand.ownerId,
-                type: NotificationType.LOW_STOCK,
-                title: content.title,
-                message: content.message,
-                metadata: { productId: product.id, productName: product.name }
-              });
-        //       await sendNotification({
-        //         userId: sellerId,
-        //         type: "LOW_STOCK",
-        //         title: "Stock faible",
-        //         message: `Le produit ${product.name} est presque épuisé.`,
-        //         metadata: { productId: product.id }
-        //       });
-            }          
+
+        if (product.stock <= 5) {
+          const content = buildNotificationContent({
+            type: NotificationType.LOW_STOCK,
+            orderId: product.id,
+            productName: product.name
+          });
+
+          await sendNotification({
+            userId: product.brand.ownerId,
+            type: NotificationType.LOW_STOCK,
+            title: content.title,
+            message: content.message,
+            metadata: { productId: product.id, productName: product.name }
+          });
+          //       await sendNotification({
+          //         userId: sellerId,
+          //         type: "LOW_STOCK",
+          //         title: "Stock faible",
+          //         message: `Le produit ${product.name} est presque épuisé.`,
+          //         metadata: { productId: product.id }
+          //       });
+        }
         throw new Error(`INSUFFICIENT_STOCK_PRODUCT_${product.id}`);
       }
     }
@@ -151,7 +151,7 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     type: "ORDER_CREATED",
     title: "Commande créée",
     message: `Votre commande #${order.id} a été créée avec succès.`,
-    metadata: { orderId: order.id }
+    metadata: { orderId: order.id, totalAmount: order.totalAmount }
   });
 
   return order;

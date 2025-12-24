@@ -65,5 +65,9 @@ import { adminCreateDeliveryZoneController, adminListDeliveryZonesController } f
 router.post("/delivery/zones", requireRole("ADMIN"), adminCreateDeliveryZoneController);
 router.get("/delivery/zones", requireRole("ADMIN"), adminListDeliveryZonesController);
 
+// Finances
+import { listSellersFinances, createPayout } from "../controllers/admin/adminFinancesController";
+router.get("/finances/sellers", requireRole("ADMIN"), listSellersFinances);
+router.post("/finances/payouts", requireRole("ADMIN"), createPayout);
 
 export default router;

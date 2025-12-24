@@ -2,6 +2,8 @@ import { Worker } from "bullmq";
 import { bullConnection } from "../bullmqConnection";
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import { PaymentProvider } from "@prisma/client";
+import { broadcastToAdmins } from "../../../core/services/notificationService";
+import { NotificationType } from "../../../core/constants/notificationTypes";
 
 const RECONCILIATION_INTERVAL_MS = 15 * 60 * 1000; // 15 mins
 
@@ -37,6 +39,13 @@ export const paymentsReconciliationWorker = new Worker(
                 });
 
                 console.log(`Marked payment ${payment.id} as FAILED (reconciliation)`);
+
+                await broadcastToAdmins(
+                    NotificationType.PAYMENT_FAILED,
+                    "Échec de paiement (Reconciliation)",
+                    `Le paiement #${payment.id} pour la commande #${payment.orderId} a échoué (Timeout 15min).`,
+                    { orderId: payment.orderId, paymentId: payment.id, provider: payment.provider }
+                );
             }
         }
     }
