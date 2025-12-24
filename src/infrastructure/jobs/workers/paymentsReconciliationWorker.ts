@@ -39,8 +39,5 @@ export const paymentsReconciliationWorker = new Worker(
                 console.log(`Marked payment ${payment.id} as FAILED (reconciliation)`);
             }
         }
-    },
-    {
-        connection: bullConnection
     }
 );

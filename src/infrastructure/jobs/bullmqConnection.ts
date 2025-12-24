@@ -1,4 +1,4 @@
 import { redis } from "../redis/redisClient";
 
-export const bullConnection = redis;
+export const bullConnection = null;
 
