@@ -38,11 +38,11 @@ app.use(express.json());
 
 app.get("/", async (_, res) => {
   await prisma.$connect()
-  .then(() => console.log("✅ Database connected"))
-  .catch((err: any) => {
-    console.error("❌ Database connection failed");
-    console.error(err);
-  });
+    .then(() => console.log("✅ Database connected"))
+    .catch((err: any) => {
+      console.error("❌ Database connection failed");
+      console.error(err);
+    });
   res.json({ status: "ok", message: "API Colobane TS opérationnelle" });
 });
 

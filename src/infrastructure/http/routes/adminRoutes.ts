@@ -39,9 +39,9 @@ router.use(requireAuth, requireRole("ADMIN", "SELLER"));
 router.get("/auth/me", getAdminMeController);
 router.post("/auth/logout", adminLogoutController);
 
-router.get("/admin/stats", adminStatsController);
-router.get("/admin/stats/timeseries", adminGetTimeSeriesStatsController);
-router.get("/admin/stats/kpis", adminGetKPIsController);
+router.get("/stats", adminStatsController);
+router.get("/stats/timeseries", adminGetTimeSeriesStatsController);
+router.get("/stats/kpis", adminGetKPIsController);
 
 // Orders
 router.get("/orders", adminListOrdersController);
