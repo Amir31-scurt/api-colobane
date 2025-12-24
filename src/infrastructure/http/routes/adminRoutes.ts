@@ -12,7 +12,11 @@ import {
 import { adminLoginController, adminLogoutController, getAdminMeController } from "../controllers/admin/adminAuthController";
 import { requireRole } from "../middlewares/auth/requireRole";
 import { requireAuth } from "../middlewares/auth/requireAuth";
-import { adminStatsController } from "../controllers/admin/adminStatsController";
+import {
+  adminStatsController,
+  adminGetTimeSeriesStatsController,
+  adminGetKPIsController,
+} from "../controllers/admin/adminStatsController";
 import { adminGetOrderController, adminListOrdersController, adminUpdateOrderStatusController } from "../controllers/admin/adminOrdersController";
 import { adminListProductsController, adminToggleProductActiveController, adminUpdateProductController } from "../controllers/admin/adminProductsController";
 import { adminListUsersController, adminToggleUserBlockController, adminUpdateUserRoleController } from "../controllers/admin/adminUsersController";
@@ -35,7 +39,9 @@ router.use(requireAuth, requireRole("ADMIN", "SELLER"));
 router.get("/auth/me", getAdminMeController);
 router.post("/auth/logout", adminLogoutController);
 
-router.get("/stats", adminStatsController);
+router.get("/admin/stats", adminStatsController);
+router.get("/admin/stats/timeseries", adminGetTimeSeriesStatsController);
+router.get("/admin/stats/kpis", adminGetKPIsController);
 
 // Orders
 router.get("/orders", adminListOrdersController);
