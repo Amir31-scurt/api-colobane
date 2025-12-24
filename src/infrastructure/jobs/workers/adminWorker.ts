@@ -1,25 +1,3 @@
 import { Worker } from "bullmq";
-import { bullConnection } from "../bullmqConnection";
-import type { AdminDailyAlertsJobData } from "../jobTypes";
-import { getAdminAlertsUsecase } from "../../../core/usecases/admin/getAdminAlertsUsecase";
-import { sendNotification } from "../../../core/services/notificationService";
 
-export const adminWorker = new Worker<AdminDailyAlertsJobData>(
-  "adminQueue",
-  async (job) => {
-    if (job.name !== "admin:dailyAlerts") return;
-
-    const alerts = await getAdminAlertsUsecase();
-
-    const title = "Rapport quotidien — Alertes";
-    const message = `Cash en attente: ${alerts.cashPendingCount} | Stock faible: ${alerts.lowStockCount}`;
-
-    await sendNotification({
-      userId: job.data.adminUserId,
-      type: "ADMIN_DAILY_ALERTS",
-      title,
-      message,
-      metadata: alerts
-    });
-  }
-);
+export const adminWorker = null as any;
