@@ -23,13 +23,14 @@ import { adminListUsersController, adminToggleUserBlockController, adminUpdateUs
 
 const router = express.Router();
 
-router.get("/overview", authRequired, isAdmin, getAdminOverviewController);
-router.get("/fees", authRequired, isAdmin, getAdminFeesController);
-router.get("/sellers", authRequired, isAdmin, getAdminSellersController);
-// router.get("/orders", authRequired, isAdmin, listAdminOrdersController);
-router.get("/orders/export/csv", authRequired, isAdmin, exportOrdersCsvController);
-router.put("/sellers/:sellerId/status", authRequired, isAdmin, toggleSellerStatusController);
-router.get("/alerts", authRequired, isAdmin, getAdminAlertsController);
+// Basic overview stats (legacy)
+router.get("/overview", requireAuth, requireRole("ADMIN"), getAdminOverviewController);
+router.get("/fees", requireAuth, requireRole("ADMIN"), getAdminFeesController);
+router.get("/sellers", requireAuth, requireRole("ADMIN"), getAdminSellersController);
+// router.get("/orders", requireAuth, requireRole("ADMIN"), listAdminOrdersController);
+router.get("/orders/export/csv", requireAuth, requireRole("ADMIN"), exportOrdersCsvController);
+router.put("/sellers/:sellerId/status", requireAuth, requireRole("ADMIN"), toggleSellerStatusController);
+router.get("/alerts", requireAuth, requireRole("ADMIN"), getAdminAlertsController);
 // Public (admin login)
 router.post("/auth/login", adminLoginController);
 
