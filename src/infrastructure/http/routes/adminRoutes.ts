@@ -65,10 +65,82 @@ import { adminCreateDeliveryZoneController, adminListDeliveryZonesController } f
 router.post("/delivery/zones", requireRole("ADMIN"), adminCreateDeliveryZoneController);
 router.get("/delivery/zones", requireRole("ADMIN"), adminListDeliveryZonesController);
 
+/**
+ * @swagger
+ * tags:
+ *   name: Admin / Finances
+ *   description: Gestion financière (commissions, reversements, exports)
+ */
+
 // Finances
 import { listSellersFinances, createPayout, exportFinancesCsv } from "../controllers/admin/adminFinancesController";
+
+/**
+ * @swagger
+ * /admin/finances/sellers:
+ *   get:
+ *     summary: Liste les finances de tous les vendeurs
+ *     tags: [Admin / Finances]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Succès
+ */
 router.get("/finances/sellers", requireRole("ADMIN"), listSellersFinances);
+
+/**
+ * @swagger
+ * /admin/finances/payouts:
+ *   post:
+ *     summary: Enregistre un nouveau reversement pour un vendeur
+ *     tags: [Admin / Finances]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               sellerId:
+ *                 type: number
+ *               amount:
+ *                 type: number
+ *               provider:
+ *                 type: string
+ *               note:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Reversement créé
+ */
 router.post("/finances/payouts", requireRole("ADMIN"), createPayout);
+
+/**
+ * @swagger
+ * /admin/finances/export:
+ *   get:
+ *     summary: Exportation des données financières en CSV
+ *     tags: [Admin / Finances]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [sales, payments, commissions]
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Fichier CSV
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ */
 router.get("/finances/export", requireRole("ADMIN"), exportFinancesCsv);
 
 export default router;

@@ -15,13 +15,59 @@ import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
-// Liste produits
+/**
+ * @swagger
+ * tags:
+ *   name: Products
+ *   description: Gestion des produits et du catalogue
+ */
+
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Liste tous les produits (avec filtres optionnels)
+ *     tags: [Products]
+ *     responses:
+ *       200:
+ *         description: Liste de produits
+ */
 router.get("/", listProductsController);
 
-// Recherche produits
+/**
+ * @swagger
+ * /api/products/search:
+ *   get:
+ *     summary: Recherche textuelle de produits
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.get("/search", searchProductsController);
 
-// Détails produit
+/**
+ * @swagger
+ * /api/products/{slug}:
+ *   get:
+ *     summary: Récupère un produit par son slug
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Détails du produit
+ */
 router.get("/:slug", getProductController);
 
 // Création produit (SELLER ou ADMIN)
