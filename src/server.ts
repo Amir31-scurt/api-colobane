@@ -52,18 +52,7 @@ app.get("/", async (_, res) => {
 });
 
 
-/* =======================
-   HANDLER GLOBAL ERREURS
-======================= */
 
-app.use((err: any, _req: any, res: any, _next: any) => {
-  console.error("API Error:", err.message);
-
-  res.status(500).json({
-    status: "error",
-    message: "Erreur interne du serveur",
-  });
-});
 
 // Add this line
 app.set('trust proxy', 1);
@@ -104,6 +93,21 @@ app.use(
   })
 );
 
+
+/* =======================
+   HANDLER GLOBAL ERREURS
+======================= */
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error("API Error:", err);
+  if (res.headersSent) {
+    return _next(err);
+  }
+  res.status(500).json({
+    status: "error",
+    message: err.message || "Erreur interne du serveur",
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
 
 const port = process.env.PORT || 4000;
 app.listen(port, () =>

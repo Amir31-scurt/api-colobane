@@ -31,7 +31,7 @@ export const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: bucketName,
-    acl: "public-read", // R2 doesn't always support ACLs the same way, but often harmless
+    // acl: "public-read", // Removed for R2 compatibility
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, cb) {
       const folder = getFolder(req);
