@@ -1,5 +1,5 @@
 import multer from "multer";
-import { S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import multerS3 from "multer-s3";
 import path from "path";
 import dotenv from "dotenv";
@@ -12,31 +12,30 @@ if (!process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY || !proce
   // Don't crash immediately on import, but this will fail later if used
 }
 
-const r2Config = {
-  endpoint: process.env.R2_ENDPOINT || "",
+const s3 = new S3Client({
   region: "auto",
+  endpoint: process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || ""
-  }
-};
-
-const s3 = new S3Client(r2Config);
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
 
 const bucketName = process.env.R2_BUCKET_NAME || "colobane-assets";
 
 // Helper to determine folder based on type
 const getFolder = (req: any) => {
-  if (req.params.type === "variant") return "variants";
-  if (req.params.type === "avatar") return "avatars";
-  return "products";
+  const type = req.params.type;
+  if (type === "variant") return "variants";
+  if (type === "avatar") return "avatars";
+  if (type === "product") return "products";
+  return type || "uploads";
 };
 
 export const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: bucketName,
-    // acl: "public-read", // Removed for R2 compatibility
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, cb) {
       const folder = getFolder(req);
@@ -46,3 +45,20 @@ export const upload = multer({
     }
   })
 });
+
+export async function uploadImage(
+  file: Buffer,
+  key: string,
+  contentType: string
+) {
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: file,
+      ContentType: contentType,
+    })
+  );
+
+  return `${process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_CDN_URL}/${key}`;
+}
