@@ -11,17 +11,14 @@ router.post(
   isSeller,
   upload.single("image"),
   (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ message: "Aucun fichier reçu" });
-    }
+    // Multer S3 adds 'key' and 'location' to req.file
+    const file = req.file as any;
+    const cdnUrl = process.env.CLOUDFLARE_CDN_URL;
 
-    const getPath = (type: string) => {
-      if (type === "variant") return "variants";
-      if (type === "avatar") return "avatars";
-      return "products";
-    };
-
-    const fileUrl = `/uploads/${getPath(req.params.type)}/${req.file.filename}`;
+    // If CDN is configured, use it, otherwise use the direct R2/S3 location
+    const fileUrl = cdnUrl
+      ? `${cdnUrl}/${file.key}`
+      : file.location;
 
     return res.json({
       url: fileUrl

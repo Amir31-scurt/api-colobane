@@ -1,27 +1,43 @@
 import multer from "multer";
+import { S3Client } from "@aws-sdk/client-s3";
+import multerS3 from "multer-s3";
 import path from "path";
-import fs from "fs";
+import dotenv from "dotenv";
 
-const uploadDir = path.join(process.cwd(), "uploads");
+dotenv.config();
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-export const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let folder = "products";
-    if (req.params.type === "variant") folder = "variants";
-    if (req.params.type === "avatar") folder = "avatars";
-
-    const fullPath = path.join(uploadDir, folder);
-    if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
-    cb(null, fullPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
+// R2 Configuration
+const r2Config = {
+  endpoint: process.env.CLOUDFLARE_R2_ENDPOINT!,
+  region: "auto",
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY!
   }
-});
+};
 
-export const upload = multer({ storage });
+const s3 = new S3Client(r2Config);
+
+const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME || "colobane-assets";
+
+// Helper to determine folder based on type
+const getFolder = (req: any) => {
+  if (req.params.type === "variant") return "variants";
+  if (req.params.type === "avatar") return "avatars";
+  return "products";
+};
+
+export const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: bucketName,
+    acl: "public-read", // R2 doesn't always support ACLs the same way, but often harmless
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function (req, file, cb) {
+      const folder = getFolder(req);
+      const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+      const fullPath = `${folder}/${uniqueName}`;
+      cb(null, fullPath);
+    }
+  })
+});
