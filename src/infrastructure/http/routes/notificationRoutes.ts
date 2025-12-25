@@ -1,6 +1,6 @@
 // src/infrastructure/http/routes/notificationRoutes.ts
 import express from "express";
-import { authRequired } from "../middlewares/authMiddleware";
+import { requireAuth } from "../middlewares/auth/requireAuth";
 import {
   listNotificationsController,
   markNotificationReadController
@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.get("/", authRequired, listNotificationsController);
-router.put("/:notificationId/read", authRequired, markNotificationReadController);
+router.get("/", requireAuth, listNotificationsController);
+router.put("/:notificationId/read", requireAuth, markNotificationReadController);
 
 export default router;

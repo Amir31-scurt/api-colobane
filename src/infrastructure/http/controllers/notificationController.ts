@@ -2,9 +2,12 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middlewares/authMiddleware";
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
-export async function listNotificationsController(req: AuthRequest, res: Response) {
+export async function listNotificationsController(req: any, res: Response) {
+  const userId = req.auth?.userId || req.user?.id;
+  if (!userId) return res.status(401).json({ error: "UNAUTHORIZED" });
+
   const notifications = await prisma.notification.findMany({
-    where: { userId: req.user!.id },
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: 50
   });
@@ -12,11 +15,14 @@ export async function listNotificationsController(req: AuthRequest, res: Respons
   return res.json(notifications);
 }
 
-export async function markNotificationReadController(req: AuthRequest, res: Response) {
+export async function markNotificationReadController(req: any, res: Response) {
+  const userId = req.auth?.userId || req.user?.id;
+  if (!userId) return res.status(401).json({ error: "UNAUTHORIZED" });
+
   const id = Number(req.params.notificationId);
 
   const notif = await prisma.notification.findFirst({
-    where: { id, userId: req.user!.id }
+    where: { id, userId }
   });
 
   if (!notif) {
