@@ -5,15 +5,9 @@ import { sellerCreateProductUsecase } from "../../../../core/usecases/seller/sel
 import { sellerUpdateProductUsecase } from "../../../../core/usecases/seller/sellerUpdateProductUsecase";
 import { sellerListOrdersUsecase } from "../../../../core/usecases/seller/sellerListOrdersUsecase";
 
-// Extend Request to include user populated by middleware
-interface AuthenticatedRequest extends Request {
-    user?: {
-        id: number;
-        role: string;
-    };
-}
 
-export async function sellerGetStatsController(req: AuthenticatedRequest, res: Response) {
+
+export async function sellerGetStatsController(req: Request, res: Response) {
     try {
         const userId = req.user!.id;
         const stats = await sellerGetStatsUsecase(userId);
@@ -24,7 +18,7 @@ export async function sellerGetStatsController(req: AuthenticatedRequest, res: R
     }
 }
 
-export async function sellerListProductsController(req: AuthenticatedRequest, res: Response) {
+export async function sellerListProductsController(req: Request, res: Response) {
     try {
         const userId = req.user!.id;
         const page = Number(req.query.page) || 1;
@@ -39,7 +33,7 @@ export async function sellerListProductsController(req: AuthenticatedRequest, re
     }
 }
 
-export async function sellerCreateProductController(req: AuthenticatedRequest, res: Response) {
+export async function sellerCreateProductController(req: Request, res: Response) {
     try {
         const userId = req.user!.id;
         const body = req.body;
@@ -53,7 +47,7 @@ export async function sellerCreateProductController(req: AuthenticatedRequest, r
     }
 }
 
-export async function sellerUpdateProductController(req: AuthenticatedRequest, res: Response) {
+export async function sellerUpdateProductController(req: Request, res: Response) {
     try {
         const userId = req.user!.id;
         const productId = Number(req.params.id);
@@ -66,7 +60,7 @@ export async function sellerUpdateProductController(req: AuthenticatedRequest, r
     }
 }
 
-export async function sellerListOrdersController(req: AuthenticatedRequest, res: Response) {
+export async function sellerListOrdersController(req: Request, res: Response) {
     try {
         const userId = req.user!.id;
         const page = Number(req.query.page) || 1;
