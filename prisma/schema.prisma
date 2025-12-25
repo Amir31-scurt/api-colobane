@@ -15,6 +15,7 @@ model User {
   phone        String         @unique
   password     String
   role         UserRole       @default(CUSTOMER)
+  avatarUrl    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   brands       Brand[]

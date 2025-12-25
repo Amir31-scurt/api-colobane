@@ -15,8 +15,14 @@ router.post(
       return res.status(400).json({ message: "Aucun fichier reçu" });
     }
 
-    const fileUrl = `/uploads/${req.params.type === "variant" ? "variants" : "products"}/${req.file.filename}`;
-    
+    const getPath = (type: string) => {
+      if (type === "variant") return "variants";
+      if (type === "avatar") return "avatars";
+      return "products";
+    };
+
+    const fileUrl = `/uploads/${getPath(req.params.type)}/${req.file.filename}`;
+
     return res.json({
       url: fileUrl
     });

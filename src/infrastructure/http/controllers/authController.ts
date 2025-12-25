@@ -9,6 +9,7 @@ import { resetPasswordUsecase } from "../../../core/usecases/auth/resetPasswordU
 import { verifyOtpUseCase } from "../../../core/usecases/auth/verifyOtpUsecase";
 import { requestOtpUseCase } from "../../../core/usecases/auth/requestOtpUsecase";
 import { logoutUseCase } from "../../../core/usecases/auth/logoutUsecase";
+import { updateProfileUsecase } from "../../../core/usecases/users/updateProfileUsecase";
 
 export async function registerController(req: Request, res: Response) {
   try {
@@ -48,50 +49,50 @@ export async function loginController(req: Request, res: Response) {
   }
 }
 export async function meController(req: AuthRequest, res: Response) {
-    if (!req.user) {
-      return res.status(401).json({ message: "Non authentifié" });
-    }
-    return res.json({ user: req.user });
+  if (!req.user) {
+    return res.status(401).json({ message: "Non authentifié" });
+  }
+  return res.json({ user: req.user });
 }
-  
+
 export async function refreshTokenController(req: AuthRequest, res: Response) {
-    try {
-      const { refreshToken } = req.body;
-      if (!refreshToken) {
-        return res.status(400).json({ message: "Refresh token manquant" });
-      }
-  
-      const tokens = await refreshTokenUsecase(refreshToken);
-      return res.json(tokens);
-    } catch (err: any) {
-      if (err.message === "INVALID_REFRESH_TOKEN") {
-        return res.status(401).json({ message: "Refresh token invalide" });
-      }
-      console.error(err);
-      return res.status(500).json({ message: "Erreur interne" });
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Refresh token manquant" });
     }
+
+    const tokens = await refreshTokenUsecase(refreshToken);
+    return res.json(tokens);
+  } catch (err: any) {
+    if (err.message === "INVALID_REFRESH_TOKEN") {
+      return res.status(401).json({ message: "Refresh token invalide" });
+    }
+    console.error(err);
+    return res.status(500).json({ message: "Erreur interne" });
+  }
 }
-  
+
 export async function requestPasswordResetController(req: AuthRequest, res: Response) {
-    const { email } = req.body;
-    await requestPasswordResetUsecase(email);
-    return res.json({
-      message: "Si un compte existe avec cet email, un lien de réinitialisation a été généré."
-    });
+  const { email } = req.body;
+  await requestPasswordResetUsecase(email);
+  return res.json({
+    message: "Si un compte existe avec cet email, un lien de réinitialisation a été généré."
+  });
 }
-  
+
 export async function resetPasswordController(req: AuthRequest, res: Response) {
-    try {
-      const { token, newPassword } = req.body;
-      await resetPasswordUsecase(token, newPassword);
-      return res.json({ message: "Mot de passe réinitialisé avec succès." });
-    } catch (err: any) {
-      if (err.message === "INVALID_OR_EXPIRED_TOKEN") {
-        return res.status(400).json({ message: "Token invalide ou expiré." });
-      }
-      console.error(err);
-      return res.status(500).json({ message: "Erreur interne" });
+  try {
+    const { token, newPassword } = req.body;
+    await resetPasswordUsecase(token, newPassword);
+    return res.json({ message: "Mot de passe réinitialisé avec succès." });
+  } catch (err: any) {
+    if (err.message === "INVALID_OR_EXPIRED_TOKEN") {
+      return res.status(400).json({ message: "Token invalide ou expiré." });
     }
+    console.error(err);
+    return res.status(500).json({ message: "Erreur interne" });
+  }
 }
 
 export async function requestOtpController(req: Request, res: Response) {
@@ -136,4 +137,27 @@ export async function logoutController(req: Request, res: Response) {
     status: "ok",
     message: "Déconnexion réussie",
   });
+}
+
+export async function updateProfileController(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Non authentifié" });
+
+    const { name, password, avatarUrl } = req.body;
+    const updatedUser = await updateProfileUsecase({
+      userId,
+      name,
+      password,
+      avatarUrl
+    });
+
+    return res.json({
+      message: "Profil mis à jour",
+      user: updatedUser
+    });
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur interne" });
+  }
 }

@@ -9,7 +9,8 @@ import {
   resetPasswordController,
   verifyOtpController,
   requestOtpController,
-  logoutController
+  logoutController,
+  updateProfileController
 } from "../controllers/authController";
 import { authRequired } from "../middlewares/authMiddleware";
 
@@ -81,6 +82,7 @@ router.post("/login", loginController);
  *         description: Profil utilisateur
  */
 router.get("/me", authRequired, meController);
+router.patch("/me", authRequired, updateProfileController);
 
 router.post("/refresh-token", refreshTokenController);
 

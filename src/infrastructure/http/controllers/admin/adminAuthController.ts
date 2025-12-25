@@ -28,12 +28,27 @@ export async function adminLogoutController(req: Request, res: Response) {
 
 export async function getAdminMeController(req: Request, res: Response) {
   try {
-    const user = req.auth;
-    return res.json({
-      id: user?.userId,
-      role: user?.role
+    const actor = req.auth;
+    if (!actor) return res.status(401).json({ error: "UNAUTHORIZED" });
+
+    // Fetch fresh data from DB
+    const { prisma } = await import("../../../prisma/prismaClient");
+    const user = await prisma.user.findUnique({
+      where: { id: actor.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        avatarUrl: true
+      }
     });
-  } catch {
+
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+
+    return res.json(user);
+  } catch (error) {
+    console.error("Me Error:", error);
     return res.status(401).json({ error: "UNAUTHORIZED" });
   }
 }

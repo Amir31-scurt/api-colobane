@@ -10,7 +10,10 @@ if (!fs.existsSync(uploadDir)) {
 
 export const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folder = req.params.type === "variant" ? "variants" : "products";
+    let folder = "products";
+    if (req.params.type === "variant") folder = "variants";
+    if (req.params.type === "avatar") folder = "avatars";
+
     const fullPath = path.join(uploadDir, folder);
     if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
     cb(null, fullPath);
