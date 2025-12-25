@@ -18,8 +18,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     const payload = verifyAccessToken(token);
     req.auth = { userId: Number(payload.sub), role: payload.role };
     return next();
-  } catch (err: any) {
-    console.error(`🔒 Auth Error:`, err.message);
-    return res.status(401).json({ error: "UNAUTHORIZED", message: err.message });
+  } catch {
+    return res.status(401).json({ error: "UNAUTHORIZED" });
   }
 }
