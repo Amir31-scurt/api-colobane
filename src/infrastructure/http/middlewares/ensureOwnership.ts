@@ -1,14 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
-interface AuthenticatedRequest extends Request {
-    user?: {
-        id: number;
-        role: string;
-    };
-}
-
-export async function ensureProductOwnership(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function ensureProductOwnership(req: Request, res: Response, next: NextFunction) {
     const userId = req.user?.id;
     const productId = Number(req.params.id);
 
