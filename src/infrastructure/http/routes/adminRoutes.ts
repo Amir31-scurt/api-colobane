@@ -37,7 +37,10 @@ router.post("/auth/login", adminLoginController);
 // Protected (admin & seller)
 router.use(requireAuth, requireRole("ADMIN", "SELLER"));
 
+import { updateProfileController } from "../controllers/authController";
+
 router.get("/auth/me", getAdminMeController);
+router.patch("/auth/me", updateProfileController);
 router.post("/auth/logout", adminLogoutController);
 
 router.get("/stats", adminStatsController);

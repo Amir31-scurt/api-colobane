@@ -1,14 +1,15 @@
 import express from "express";
 import path from "path";
 import { upload } from "../../files/uploadConfig";
-import { authRequired, isSeller } from "../middlewares/authMiddleware";
+import { unifiedAuth } from "../middlewares/unifiedAuth";
+import { requireRole } from "../middlewares/auth/requireRole";
 
 const router = express.Router();
 
 router.post(
   "/:type", // type = "product" ou "variant"
-  authRequired,
-  isSeller,
+  unifiedAuth,
+  requireRole("SELLER", "ADMIN"),
   upload.single("image"),
   (req, res) => {
     // Multer S3 adds 'key' and 'location' to req.file

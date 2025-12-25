@@ -141,7 +141,8 @@ export async function logoutController(req: Request, res: Response) {
 
 export async function updateProfileController(req: AuthRequest, res: Response) {
   try {
-    const userId = req.user?.id;
+    // req.user from authRequired, req.auth from requireAuth
+    const userId = req.user?.id || req.auth?.userId;
     if (!userId) return res.status(401).json({ message: "Non authentifié" });
 
     const { name, password, avatarUrl } = req.body;
