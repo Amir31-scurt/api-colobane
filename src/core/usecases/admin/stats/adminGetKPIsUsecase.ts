@@ -3,13 +3,15 @@ import { OrderStatus } from "@prisma/client";
 
 export async function adminGetKPIsUsecase() {
     // 1. General counts
-    const [totalOrders, totalRevenueData, totalUsers] = await Promise.all([
+    const [totalOrders, totalRevenueData, totalUsers, totalProducts, totalSellers] = await Promise.all([
         prisma.order.count(),
         prisma.order.aggregate({
             _sum: { totalAmount: true },
             where: { status: { not: OrderStatus.CANCELLED } },
         }),
         prisma.user.count({ where: { role: "CUSTOMER" } }), // Focus on customers for conversion
+        prisma.product.count(),
+        prisma.user.count({ where: { role: "SELLER" } }),
     ]);
 
     const totalRevenue = totalRevenueData._sum.totalAmount || 0;
@@ -84,7 +86,9 @@ export async function adminGetKPIsUsecase() {
     return {
         totalRevenue,
         totalOrders,
-        totalUsers,
+        totalCustomers: totalUsers,
+        totalProducts,
+        totalSellers,
         averageOrderValue,
         conversionRate, // Actually OrdersPerCustomer
         topProducts,

@@ -21,17 +21,19 @@ export async function adminGetTimeSeriesStatsUsecase() {
         },
     });
 
-    // 2. Fetch Payments Status Distribution (All time or last 30 days? Let's do all time for general health, or 30 days for trend. Plan said 'paymentsStatus').
-    // Let's do last 30 days for consistency with charts.
-    const payments = await prisma.payment.groupBy({
-        by: ["status"],
-        where: {
-            createdAt: { gte: thirtyDaysAgo },
-        },
-        _count: {
-            status: true,
-        },
-    });
+    // 2. Fetch Payments Status Distribution (Last 30 days)
+    const [payments, orderStatuses] = await Promise.all([
+        prisma.payment.groupBy({
+            by: ["status"],
+            where: { createdAt: { gte: thirtyDaysAgo } },
+            _count: { status: true },
+        }),
+        prisma.order.groupBy({
+            by: ["status"],
+            where: { createdAt: { gte: thirtyDaysAgo } },
+            _count: { status: true },
+        }),
+    ]);
 
     // 3. Process Data
     const ordersByDayMap = new Map<string, number>();
@@ -72,9 +74,15 @@ export async function adminGetTimeSeriesStatsUsecase() {
         count: p._count.status,
     }));
 
+    const orderStats = orderStatuses.map(o => ({
+        status: o.status,
+        count: o._count.status,
+    }));
+
     return {
         ordersByDay,
         revenueByDay,
         paymentStats,
+        orderStats,
     };
 }
