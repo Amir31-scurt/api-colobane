@@ -14,7 +14,7 @@ router.post(
   (req, res) => {
     // Multer S3 adds 'key' and 'location' to req.file
     const file = req.file as any;
-    const cdnUrl = process.env.CLOUDFLARE_CDN_URL;
+    const cdnUrl = process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_CDN_URL;
 
     // If CDN is configured, use it, otherwise use the direct R2/S3 location
     const fileUrl = cdnUrl
