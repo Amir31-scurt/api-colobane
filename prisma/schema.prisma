@@ -182,8 +182,16 @@ model Brand {
   primaryColor   String?
   secondaryColor String?
   logoUrl        String?
-  isActive       Boolean     @default(true)
+  isActive       Boolean     @default(false) // Changed: inactive until approved
   createdAt      DateTime    @default(now())
+  
+  // Seller approval workflow
+  approvalStatus BrandApprovalStatus @default(PENDING)
+  submittedAt    DateTime    @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     Int?        // Admin who reviewed
+  rejectedReason String?
+  
   // relation propriétaire
   owner          User        @relation(fields: [ownerId], references: [id])
   ownerId        Int
@@ -191,6 +199,12 @@ model Brand {
 
   products   Product[]
   categories Category[] @relation("BrandCategories")
+}
+
+enum BrandApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model ProductImage {

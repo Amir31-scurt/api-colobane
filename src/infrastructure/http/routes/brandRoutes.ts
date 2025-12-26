@@ -8,6 +8,11 @@ import {
   assignCategoriesToBrandController,
   getBrandCategoriesController
 } from "../controllers/brandCategoryController";
+import {
+  approveBrandController,
+  rejectBrandController,
+  listPendingBrandsController
+} from "../controllers/admin/adminBrandController";
 
 const router = express.Router();
 
@@ -22,7 +27,7 @@ const router = express.Router();
  * @swagger
  * /api/brands:
  *   get:
- *     summary: Liste toutes les marques
+ *     summary: Liste toutes les marques (actives uniquement pour public)
  *     tags: [Brands]
  *     responses:
  *       200:
@@ -52,7 +57,8 @@ router.get("/:slug", getBrandController);
  * @swagger
  * /api/brands:
  *   post:
- *     summary: Créer une nouvelle marque
+ *     summary: Créer une nouvelle marque (demande de devenir vendeur)
+ *     description: Any authenticated user can create a brand. The brand will be pending admin approval.
  *     tags: [Brands]
  *     security:
  *       - bearerAuth: []
@@ -62,16 +68,72 @@ router.get("/:slug", getBrandController);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, ownerId]
+ *             required: [name, slug]
  *             properties:
  *               name: { type: string }
- *               ownerId: { type: number }
+ *               slug: { type: string }
+ *               description: { type: string }
+ *               primaryColor: { type: string }
+ *               secondaryColor: { type: string }
  *               logoUrl: { type: string }
  *     responses:
  *       201:
- *         description: Marque créée
+ *         description: Marque créée (en attente d'approbation)
  */
-router.post("/", authRequired, isAdmin, createBrandController);
+router.post("/", authRequired, createBrandController);
+
+// =====================
+// ADMIN APPROVAL ROUTES
+// =====================
+
+/**
+ * @swagger
+ * /api/brands/admin/pending:
+ *   get:
+ *     summary: Liste les marques en attente d'approbation (Admin only)
+ *     tags: [Brands]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des marques en attente
+ */
+router.get("/admin/pending", authRequired, isAdmin, listPendingBrandsController);
+
+/**
+ * @swagger
+ * /api/brands/{brandId}/approve:
+ *   post:
+ *     summary: Approuver une marque (Admin only)
+ *     tags: [Brands]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Marque approuvée, vendeur activé
+ */
+router.post("/:brandId/approve", authRequired, isAdmin, approveBrandController);
+
+/**
+ * @swagger
+ * /api/brands/{brandId}/reject:
+ *   post:
+ *     summary: Rejeter une marque (Admin only)
+ *     tags: [Brands]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason: { type: string }
+ *     responses:
+ *       200:
+ *         description: Marque rejetée
+ */
+router.post("/:brandId/reject", authRequired, isAdmin, rejectBrandController);
 
 /**
  * @swagger
@@ -123,3 +185,4 @@ router.get("/:brandId/categories", getBrandCategoriesController);
 router.put("/:brandId/categories", authRequired, isAdmin, assignCategoriesToBrandController);
 
 export default router;
+
