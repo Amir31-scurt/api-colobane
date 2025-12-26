@@ -7,12 +7,17 @@ export async function adminLoginUsecase(email: string, password: string) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error("INVALID_CREDENTIALS");
   if (user.isBlocked) throw new Error("USER_BLOCKED");
-  if (user.role !== "ADMIN") throw new Error("FORBIDDEN");
+
+  // Allow both ADMIN and SELLER roles to login to the admin panel
+  if (user.role !== "ADMIN" && user.role !== "SELLER") {
+    throw new Error("FORBIDDEN");
+  }
 
   const ok = await verifyPassword(password, user.password);
   if (!ok) throw new Error("INVALID_CREDENTIALS");
 
-  const accessToken = signAccessToken({ sub: String(user.id), role: "ADMIN" }, "4h");
+  // Use the actual user role in the token
+  const accessToken = signAccessToken({ sub: String(user.id), role: user.role as "ADMIN" | "SELLER" }, "4h");
 
   await prisma.auditLog.create({
     data: {
@@ -26,6 +31,8 @@ export async function adminLoginUsecase(email: string, password: string) {
 
   return {
     accessToken,
-    admin: { id: user.id, email: user.email, role: user.role },
+    token: accessToken, // Alias for frontend compatibility
+    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    admin: { id: user.id, email: user.email, role: user.role }, // Legacy field
   };
 }
