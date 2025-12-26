@@ -12,7 +12,8 @@ import {
 import {
   approveBrandController,
   rejectBrandController,
-  listPendingBrandsController
+  listPendingBrandsController,
+  listAllBrandsController
 } from "../controllers/admin/adminBrandController";
 
 const router = express.Router();
@@ -86,6 +87,34 @@ router.post("/", requireAuth, createBrandController);
 // =====================
 // ADMIN APPROVAL ROUTES
 // =====================
+
+/**
+ * @swagger
+ * /api/brands/admin/all:
+ *   get:
+ *     summary: Liste toutes les marques (Admin only)
+ *     tags: [Brands]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: pageSize
+ *         schema: { type: integer, default: 20 }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [PENDING, APPROVED, REJECTED] }
+ *       - in: query
+ *         name: q
+ *         description: Search by name, slug, or owner name
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Liste paginée des marques
+ */
+router.get("/admin/all", requireAuth, requireRole("ADMIN"), listAllBrandsController);
 
 /**
  * @swagger

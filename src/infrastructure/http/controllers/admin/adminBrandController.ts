@@ -4,6 +4,61 @@ import { prisma } from "../../../prisma/prismaClient";
 import { sendEmail } from "../../../email/resendProvider";
 
 /**
+ * List all brands for admin (with pagination and filtering)
+ */
+export async function listAllBrandsController(req: Request, res: Response) {
+    try {
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize) || 20));
+        const status = req.query.status as string | undefined;
+        const q = req.query.q as string | undefined;
+
+        const where: any = {};
+
+        // Filter by approval status
+        if (status && ['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
+            where.approvalStatus = status;
+        }
+
+        // Search by name or slug
+        if (q) {
+            where.OR = [
+                { name: { contains: q, mode: 'insensitive' } },
+                { slug: { contains: q, mode: 'insensitive' } },
+                { owner: { name: { contains: q, mode: 'insensitive' } } }
+            ];
+        }
+
+        const [brands, total] = await Promise.all([
+            prisma.brand.findMany({
+                where,
+                include: {
+                    owner: {
+                        select: { id: true, name: true, email: true, phone: true, role: true }
+                    },
+                    _count: { select: { products: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: (page - 1) * pageSize,
+                take: pageSize
+            }),
+            prisma.brand.count({ where })
+        ]);
+
+        return res.json({
+            items: brands,
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize)
+        });
+    } catch (err: any) {
+        console.error("[listAllBrands]", err);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+/**
  * List all brands pending approval
  */
 export async function listPendingBrandsController(req: Request, res: Response) {
