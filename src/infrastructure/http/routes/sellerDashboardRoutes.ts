@@ -7,6 +7,7 @@ import {
     sellerListProductsController,
     sellerCreateProductController,
     sellerUpdateProductController,
+    sellerGetProductController,
     sellerListOrdersController,
     sellerUpdateBrandController,
     sellerGetBrandController
@@ -90,6 +91,7 @@ router.post("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerCrea
  *         description: Produit mis à jour
  */
 router.patch("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerUpdateProductController);
+router.get("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerGetProductController);
 
 /**
  * @swagger

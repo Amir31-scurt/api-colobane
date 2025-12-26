@@ -6,6 +6,7 @@ import { sellerUpdateProductUsecase } from "../../../../core/usecases/seller/sel
 import { sellerListOrdersUsecase } from "../../../../core/usecases/seller/sellerListOrdersUsecase";
 import { sellerUpdateBrandUsecase } from "../../../../core/usecases/seller/sellerUpdateBrandUsecase";
 import { sellerGetBrandUsecase } from "../../../../core/usecases/seller/sellerGetBrandUsecase";
+import { sellerGetProductUsecase } from "../../../../core/usecases/seller/sellerGetProductUsecase";
 
 
 
@@ -97,6 +98,19 @@ export async function sellerGetBrandController(req: Request, res: Response) {
         return res.json(brand);
     } catch (e: any) {
         console.error(e);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+export async function sellerGetProductController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const productId = Number(req.params.id);
+        const product = await sellerGetProductUsecase(userId, productId);
+        return res.json(product);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "PRODUCT_NOT_FOUND") return res.status(404).json({ error: "NOT_FOUND" });
+        if (e.message === "FORBIDDEN") return res.status(403).json({ error: "FORBIDDEN" });
         return res.status(500).json({ error: "INTERNAL_ERROR" });
     }
 }

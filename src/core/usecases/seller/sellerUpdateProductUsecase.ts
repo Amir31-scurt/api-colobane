@@ -6,16 +6,25 @@ type UpdateProductDTO = {
     price?: number;
     stock?: number;
     imageUrl?: string;
+    thumbnailUrl?: string;
     isActive?: boolean;
+    categoryId?: number;
 };
 
 export async function sellerUpdateProductUsecase(userId: number, productId: number, data: UpdateProductDTO) {
     // Ownership check is done by middleware
 
+    const { categoryId, ...rest } = data;
+
     const product = await prisma.product.update({
         where: { id: productId },
         data: {
-            ...data,
+            ...rest,
+            ...(categoryId && {
+                categories: {
+                    set: [{ id: categoryId }]
+                }
+            }),
             updatedAt: new Date(),
         },
     });

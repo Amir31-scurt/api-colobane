@@ -7,7 +7,9 @@ type CreateProductDTO = {
     price: number;
     stock: number;
     imageUrl: string;
-    brandId?: number; // Optional if we auto-select seller's brand
+    thumbnailUrl?: string;
+    brandId?: number;
+    categoryId: number;
 };
 
 export async function sellerCreateProductUsecase(sellerId: number, data: CreateProductDTO) {
@@ -39,8 +41,12 @@ export async function sellerCreateProductUsecase(sellerId: number, data: CreateP
             price: data.price,
             stock: data.stock,
             imageUrl: data.imageUrl,
+            thumbnailUrl: data.thumbnailUrl,
             brandId: targetBrandId,
-            isActive: true, // Default active? Or pending review? Default active for now.
+            isActive: true,
+            categories: {
+                connect: { id: data.categoryId }
+            }
         },
     });
 
