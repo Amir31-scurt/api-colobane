@@ -1,6 +1,12 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
-export async function sellerListOrdersUsecase(sellerId: number, page: number, pageSize: number) {
+export async function sellerListOrdersUsecase(
+    sellerId: number,
+    page: number,
+    pageSize: number,
+    status?: string,
+    search?: string
+) {
     const skip = (page - 1) * pageSize;
 
     // Find brands owned by seller
@@ -14,7 +20,7 @@ export async function sellerListOrdersUsecase(sellerId: number, page: number, pa
         return { items: [], total: 0, page, pageSize, totalPages: 0 };
     }
 
-    const whereCondition = {
+    const whereCondition: any = {
         items: {
             some: {
                 product: {
@@ -23,6 +29,26 @@ export async function sellerListOrdersUsecase(sellerId: number, page: number, pa
             }
         }
     };
+
+    if (status) {
+        whereCondition.status = status;
+    }
+
+    if (search) {
+        const searchConditions: any[] = [
+            { user: { name: { contains: search, mode: "insensitive" } } }
+        ];
+
+        // If search is a number, try to match ID
+        if (!isNaN(Number(search))) {
+            searchConditions.push({ id: Number(search) });
+        }
+
+        whereCondition.AND = [
+            ...(whereCondition.AND || []),
+            { OR: searchConditions }
+        ];
+    }
 
     const [orders, total] = await Promise.all([
         prisma.order.findMany({

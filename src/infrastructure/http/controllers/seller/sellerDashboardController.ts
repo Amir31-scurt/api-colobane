@@ -27,8 +27,10 @@ export async function sellerListProductsController(req: Request, res: Response) 
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 10;
         const search = req.query.q as string;
+        const status = req.query.status as string;
+        const stock = req.query.stock as string;
 
-        const result = await sellerListProductsUsecase(userId, page, pageSize, search);
+        const result = await sellerListProductsUsecase(userId, page, pageSize, search, status, stock);
         return res.json(result);
     } catch (e) {
         console.error(e);
@@ -68,8 +70,10 @@ export async function sellerListOrdersController(req: Request, res: Response) {
         const userId = req.auth!.userId;
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 10;
+        const status = req.query.status as string;
+        const search = req.query.q as string;
 
-        const result = await sellerListOrdersUsecase(userId, page, pageSize);
+        const result = await sellerListOrdersUsecase(userId, page, pageSize, status, search);
         return res.json(result);
     } catch (e) {
         console.error(e);

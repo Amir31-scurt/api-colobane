@@ -1,6 +1,13 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
-export async function sellerListProductsUsecase(sellerId: number, page: number, pageSize: number, search?: string) {
+export async function sellerListProductsUsecase(
+    sellerId: number,
+    page: number,
+    pageSize: number,
+    search?: string,
+    status?: string,
+    stock?: string
+) {
     const skip = (page - 1) * pageSize;
 
     const whereCondition: any = {
@@ -14,6 +21,16 @@ export async function sellerListProductsUsecase(sellerId: number, page: number, 
             { name: { contains: search, mode: "insensitive" } },
             { description: { contains: search, mode: "insensitive" } },
         ];
+    }
+
+    if (status) {
+        whereCondition.isActive = status === "active";
+    }
+
+    if (stock === "in_stock") {
+        whereCondition.stock = { gt: 0 };
+    } else if (stock === "out_of_stock") {
+        whereCondition.stock = 0;
     }
 
     const [products, total] = await Promise.all([
