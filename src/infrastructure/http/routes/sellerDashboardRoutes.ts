@@ -7,7 +7,9 @@ import {
     sellerListProductsController,
     sellerCreateProductController,
     sellerUpdateProductController,
-    sellerListOrdersController
+    sellerListOrdersController,
+    sellerUpdateBrandController,
+    sellerGetBrandController
 } from "../controllers/seller/sellerDashboardController";
 import { getSellerFinances } from "../controllers/seller/sellerFinancesController";
 
@@ -116,5 +118,43 @@ router.get("/orders", requireAuth, requireRole("SELLER", "ADMIN"), sellerListOrd
  *         description: État financier du vendeur
  */
 router.get("/finances", requireAuth, requireRole("SELLER", "ADMIN"), getSellerFinances);
+
+/**
+ * @swagger
+ * /api/seller/brand:
+ *   patch:
+ *     summary: Met à jour les informations de la boutique (marque)
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               description: { type: string }
+ *               primaryColor: { type: string }
+ *               secondaryColor: { type: string }
+ *     responses:
+ *       200:
+ *         description: Marque mise à jour
+ */
+router.patch("/brand", requireAuth, requireRole("SELLER", "ADMIN"), sellerUpdateBrandController);
+
+/**
+ * @swagger
+ * /api/seller/brand:
+ *   get:
+ *     summary: Récupère les informations de la boutique (marque)
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Informations de la marque
+ */
+router.get("/brand", requireAuth, requireRole("SELLER", "ADMIN"), sellerGetBrandController);
 
 export default router;

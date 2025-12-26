@@ -4,6 +4,8 @@ import { sellerListProductsUsecase } from "../../../../core/usecases/seller/sell
 import { sellerCreateProductUsecase } from "../../../../core/usecases/seller/sellerCreateProductUsecase";
 import { sellerUpdateProductUsecase } from "../../../../core/usecases/seller/sellerUpdateProductUsecase";
 import { sellerListOrdersUsecase } from "../../../../core/usecases/seller/sellerListOrdersUsecase";
+import { sellerUpdateBrandUsecase } from "../../../../core/usecases/seller/sellerUpdateBrandUsecase";
+import { sellerGetBrandUsecase } from "../../../../core/usecases/seller/sellerGetBrandUsecase";
 
 
 
@@ -69,6 +71,31 @@ export async function sellerListOrdersController(req: Request, res: Response) {
         const result = await sellerListOrdersUsecase(userId, page, pageSize);
         return res.json(result);
     } catch (e) {
+        console.error(e);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerUpdateBrandController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const body = req.body;
+        const brand = await sellerUpdateBrandUsecase(userId, body);
+        return res.json(brand);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "NO_BRAND_FOUND") return res.status(404).json({ error: "NO_BRAND" });
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerGetBrandController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const brand = await sellerGetBrandUsecase(userId);
+        if (!brand) return res.status(404).json({ error: "NO_BRAND" });
+        return res.json(brand);
+    } catch (e: any) {
         console.error(e);
         return res.status(500).json({ error: "INTERNAL_ERROR" });
     }
