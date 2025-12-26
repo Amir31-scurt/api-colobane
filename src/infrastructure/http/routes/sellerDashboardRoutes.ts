@@ -1,5 +1,6 @@
 import express from "express";
-import { authRequired, isSeller } from "../middlewares/authMiddleware";
+import { requireAuth } from "../middlewares/auth/requireAuth";
+import { requireRole } from "../middlewares/auth/requireRole";
 import { ensureProductOwnership } from "../middlewares/ensureOwnership";
 import {
     sellerGetStatsController,
@@ -31,7 +32,7 @@ const router = express.Router();
  *       200:
  *         description: Statistiques financières et ventes
  */
-router.get("/metrics", authRequired, isSeller, sellerGetStatsController);
+router.get("/metrics", requireAuth, requireRole("SELLER", "ADMIN"), sellerGetStatsController);
 
 /**
  * @swagger
@@ -66,8 +67,8 @@ router.get("/metrics", authRequired, isSeller, sellerGetStatsController);
  *       201:
  *         description: Produit créé
  */
-router.get("/products", authRequired, isSeller, sellerListProductsController);
-router.post("/products", authRequired, isSeller, sellerCreateProductController);
+router.get("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerListProductsController);
+router.post("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerCreateProductController);
 
 /**
  * @swagger
@@ -86,7 +87,7 @@ router.post("/products", authRequired, isSeller, sellerCreateProductController);
  *       200:
  *         description: Produit mis à jour
  */
-router.patch("/products/:id", authRequired, isSeller, ensureProductOwnership, sellerUpdateProductController);
+router.patch("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerUpdateProductController);
 
 /**
  * @swagger
@@ -100,7 +101,7 @@ router.patch("/products/:id", authRequired, isSeller, ensureProductOwnership, se
  *       200:
  *         description: Liste de commandes
  */
-router.get("/orders", authRequired, isSeller, sellerListOrdersController);
+router.get("/orders", requireAuth, requireRole("SELLER", "ADMIN"), sellerListOrdersController);
 
 /**
  * @swagger
@@ -114,6 +115,6 @@ router.get("/orders", authRequired, isSeller, sellerListOrdersController);
  *       200:
  *         description: État financier du vendeur
  */
-router.get("/finances", authRequired, isSeller, getSellerFinances);
+router.get("/finances", requireAuth, requireRole("SELLER", "ADMIN"), getSellerFinances);
 
 export default router;

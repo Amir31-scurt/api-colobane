@@ -9,7 +9,7 @@ import { sellerListOrdersUsecase } from "../../../../core/usecases/seller/seller
 
 export async function sellerGetStatsController(req: Request, res: Response) {
     try {
-        const userId = req.user!.id;
+        const userId = req.auth!.userId;
         const stats = await sellerGetStatsUsecase(userId);
         return res.json(stats);
     } catch (e) {
@@ -20,7 +20,7 @@ export async function sellerGetStatsController(req: Request, res: Response) {
 
 export async function sellerListProductsController(req: Request, res: Response) {
     try {
-        const userId = req.user!.id;
+        const userId = req.auth!.userId;
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 10;
         const search = req.query.q as string;
@@ -35,7 +35,7 @@ export async function sellerListProductsController(req: Request, res: Response) 
 
 export async function sellerCreateProductController(req: Request, res: Response) {
     try {
-        const userId = req.user!.id;
+        const userId = req.auth!.userId;
         const body = req.body;
         const product = await sellerCreateProductUsecase(userId, body);
         return res.status(201).json(product);
@@ -49,7 +49,7 @@ export async function sellerCreateProductController(req: Request, res: Response)
 
 export async function sellerUpdateProductController(req: Request, res: Response) {
     try {
-        const userId = req.user!.id;
+        const userId = req.auth!.userId;
         const productId = Number(req.params.id);
         const body = req.body;
         const product = await sellerUpdateProductUsecase(userId, productId, body);
@@ -62,7 +62,7 @@ export async function sellerUpdateProductController(req: Request, res: Response)
 
 export async function sellerListOrdersController(req: Request, res: Response) {
     try {
-        const userId = req.user!.id;
+        const userId = req.auth!.userId;
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 10;
 

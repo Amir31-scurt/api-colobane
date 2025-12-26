@@ -3,7 +3,7 @@ import { sellerGetFinancesUsecase } from "../../../../core/usecases/seller/finan
 
 export const getSellerFinances = async (req: Request, res: Response) => {
     try {
-        const sellerId = (req as any).user.id;
+        const sellerId = (req as any).auth.userId;
         const finances = await sellerGetFinancesUsecase(sellerId);
         res.json(finances);
     } catch (error: any) {

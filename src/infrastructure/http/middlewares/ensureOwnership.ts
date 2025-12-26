@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function ensureProductOwnership(req: Request, res: Response, next: NextFunction) {
-    const userId = req.user?.id;
+    const userId = req.auth?.userId || req.user?.id;
+    const userRole = req.auth?.role || req.user?.role;
     const productId = Number(req.params.id);
 
     if (!userId || isNaN(productId)) {
@@ -10,7 +11,7 @@ export async function ensureProductOwnership(req: Request, res: Response, next: 
     }
 
     // Admin bypass
-    if (req.user?.role === "ADMIN") {
+    if (userRole === "ADMIN") {
         return next();
     }
 
