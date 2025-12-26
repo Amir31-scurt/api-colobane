@@ -22,8 +22,16 @@ export async function loginUser(input: LoginInput) {
     throw new Error("INVALID_CREDENTIALS");
   }
 
+  // Create token with format compatible with requireAuth middleware
+  // Must include: sub (userId), role, type: "access"
   const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    {
+      sub: String(user.id),  // userId as string
+      id: user.id,           // Keep for backward compatibility
+      email: user.email,
+      role: user.role,
+      type: "access"         // Required by jwt.ts verifyAccessToken
+    },
     String(process.env.JWT_SECRET),
     { expiresIn: String(process.env.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"] }
   );
@@ -40,3 +48,4 @@ export async function loginUser(input: LoginInput) {
     token
   };
 }
+
