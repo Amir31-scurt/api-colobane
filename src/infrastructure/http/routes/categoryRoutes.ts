@@ -9,7 +9,8 @@ import {
   deleteCategoryController
 } from "../controllers/categoryController";
 
-import { authRequired, isAdmin } from "../middlewares/authMiddleware";
+import { requireAuth } from "../middlewares/auth/requireAuth";
+import { requireRole } from "../middlewares/auth/requireRole";
 
 const router = express.Router();
 
@@ -72,7 +73,7 @@ router.get("/:slug", getCategoryController);
  *       201:
  *         description: Catégorie créée
  */
-router.post("/", authRequired, isAdmin, createCategoryController);
+router.post("/", requireAuth, requireRole("ADMIN"), createCategoryController);
 
 /**
  * @swagger
@@ -101,7 +102,7 @@ router.post("/", authRequired, isAdmin, createCategoryController);
  *       200:
  *         description: Catégorie modifiée
  */
-router.patch("/:id", authRequired, isAdmin, updateCategoryController);
+router.patch("/:id", requireAuth, requireRole("ADMIN"), updateCategoryController);
 
 /**
  * @swagger
@@ -121,6 +122,6 @@ router.patch("/:id", authRequired, isAdmin, updateCategoryController);
  *       200:
  *         description: Catégorie supprimée
  */
-router.delete("/:id", authRequired, isAdmin, deleteCategoryController);
+router.delete("/:id", requireAuth, requireRole("ADMIN"), deleteCategoryController);
 
 export default router;
