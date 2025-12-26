@@ -14,7 +14,7 @@ import { prisma } from "../../prisma/prismaClient";
  */
 export async function createBrandController(req: Request, res: Response) {
   try {
-    const ownerId = (req as any).user.id;
+    const ownerId = (req as any).auth?.userId;
     const { name, slug, description, primaryColor, secondaryColor, logoUrl } = req.body;
 
     if (!name || !slug) {

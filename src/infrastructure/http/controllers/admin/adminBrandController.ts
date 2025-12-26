@@ -31,7 +31,7 @@ export async function listPendingBrandsController(req: Request, res: Response) {
 export async function approveBrandController(req: Request, res: Response) {
     try {
         const brandId = Number(req.params.brandId);
-        const adminId = (req as any).user?.id;
+        const adminId = (req as any).auth?.userId;
 
         if (!Number.isFinite(brandId)) {
             return res.status(400).json({ error: "INVALID_BRAND_ID" });
@@ -97,7 +97,7 @@ export async function approveBrandController(req: Request, res: Response) {
 export async function rejectBrandController(req: Request, res: Response) {
     try {
         const brandId = Number(req.params.brandId);
-        const adminId = (req as any).user?.id;
+        const adminId = (req as any).auth?.userId;
         const { reason } = req.body || {};
 
         if (!Number.isFinite(brandId)) {

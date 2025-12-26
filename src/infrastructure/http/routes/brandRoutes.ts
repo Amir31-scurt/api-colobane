@@ -3,7 +3,8 @@ import express from "express";
 import { createBrandController, listBrandsController, getBrandController }
   from "../controllers/brandController";
 
-import { authRequired, isAdmin } from "../middlewares/authMiddleware";
+import { requireAuth } from "../middlewares/auth/requireAuth";
+import { requireRole } from "../middlewares/auth/requireRole";
 import {
   assignCategoriesToBrandController,
   getBrandCategoriesController
@@ -80,7 +81,7 @@ router.get("/:slug", getBrandController);
  *       201:
  *         description: Marque créée (en attente d'approbation)
  */
-router.post("/", authRequired, createBrandController);
+router.post("/", requireAuth, createBrandController);
 
 // =====================
 // ADMIN APPROVAL ROUTES
@@ -98,7 +99,7 @@ router.post("/", authRequired, createBrandController);
  *       200:
  *         description: Liste des marques en attente
  */
-router.get("/admin/pending", authRequired, isAdmin, listPendingBrandsController);
+router.get("/admin/pending", requireAuth, requireRole("ADMIN"), listPendingBrandsController);
 
 /**
  * @swagger
@@ -112,7 +113,7 @@ router.get("/admin/pending", authRequired, isAdmin, listPendingBrandsController)
  *       200:
  *         description: Marque approuvée, vendeur activé
  */
-router.post("/:brandId/approve", authRequired, isAdmin, approveBrandController);
+router.post("/:brandId/approve", requireAuth, requireRole("ADMIN"), approveBrandController);
 
 /**
  * @swagger
@@ -133,7 +134,7 @@ router.post("/:brandId/approve", authRequired, isAdmin, approveBrandController);
  *       200:
  *         description: Marque rejetée
  */
-router.post("/:brandId/reject", authRequired, isAdmin, rejectBrandController);
+router.post("/:brandId/reject", requireAuth, requireRole("ADMIN"), rejectBrandController);
 
 /**
  * @swagger
@@ -182,7 +183,7 @@ router.get("/:brandId/categories", getBrandCategoriesController);
  *       200:
  *         description: Catégories assignées
  */
-router.put("/:brandId/categories", authRequired, isAdmin, assignCategoriesToBrandController);
+router.put("/:brandId/categories", requireAuth, requireRole("ADMIN"), assignCategoriesToBrandController);
 
 export default router;
 
