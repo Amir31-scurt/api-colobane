@@ -1,6 +1,17 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import slugify from "slugify";
 
+interface VariantInput {
+    name: string;
+    price?: number;
+    stock: number;
+    option1?: string;
+    option2?: string;
+    option3?: string;
+    imageUrl?: string;
+    thumbnailUrl?: string;
+}
+
 type CreateProductDTO = {
     name: string;
     description?: string;
@@ -10,13 +21,11 @@ type CreateProductDTO = {
     thumbnailUrl?: string;
     brandId?: number;
     categoryId: number;
+    variants?: VariantInput[];
 };
 
 export async function sellerCreateProductUsecase(sellerId: number, data: CreateProductDTO) {
     // 1. Determine Brand
-    // For now, assume Seller has 1 Brand. If multiple, frontend must send brandId.
-    // If brandId is sent, verify ownership.
-
     let targetBrandId = data.brandId;
 
     if (targetBrandId) {
@@ -25,7 +34,6 @@ export async function sellerCreateProductUsecase(sellerId: number, data: CreateP
             throw new Error("FORBIDDEN_BRAND_ACCESS");
         }
     } else {
-        // Auto-find first brand
         const firstBrand = await prisma.brand.findFirst({ where: { ownerId: sellerId } });
         if (!firstBrand) throw new Error("NO_BRAND_FOUND");
         targetBrandId = firstBrand.id;
@@ -46,7 +54,21 @@ export async function sellerCreateProductUsecase(sellerId: number, data: CreateP
             isActive: true,
             categories: {
                 connect: { id: data.categoryId }
-            }
+            },
+            ...(data.variants && data.variants.length > 0 && {
+                variants: {
+                    create: data.variants.map(v => ({
+                        name: v.name,
+                        price: v.price ?? null,
+                        stock: v.stock,
+                        option1: v.option1,
+                        option2: v.option2,
+                        option3: v.option3,
+                        imageUrl: v.imageUrl ?? null,
+                        thumbnailUrl: v.thumbnailUrl ?? null
+                    }))
+                }
+            })
         },
     });
 

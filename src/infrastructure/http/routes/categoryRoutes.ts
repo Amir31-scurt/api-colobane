@@ -4,7 +4,9 @@ import express from "express";
 import {
   createCategoryController,
   listCategoriesController,
-  getCategoryController
+  getCategoryController,
+  updateCategoryController,
+  deleteCategoryController
 } from "../controllers/categoryController";
 
 import { authRequired, isAdmin } from "../middlewares/authMiddleware";
@@ -71,5 +73,54 @@ router.get("/:slug", getCategoryController);
  *         description: Catégorie créée
  */
 router.post("/", authRequired, isAdmin, createCategoryController);
+
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   patch:
+ *     summary: Modifier une catégorie
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: number
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               slug: { type: string }
+ *               isGlobal: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Catégorie modifiée
+ */
+router.patch("/:id", authRequired, isAdmin, updateCategoryController);
+
+/**
+ * @swagger
+ * /api/categories/{id}:
+ *   delete:
+ *     summary: Supprimer une catégorie
+ *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Catégorie supprimée
+ */
+router.delete("/:id", authRequired, isAdmin, deleteCategoryController);
 
 export default router;
