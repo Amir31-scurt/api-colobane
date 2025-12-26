@@ -9,8 +9,13 @@ export async function adminListProductsController(req: Request, res: Response) {
     const page = Math.max(1, Number(req.query.page || 1));
     const pageSize = Math.min(100, Math.max(10, Number(req.query.pageSize || 20)));
     const q = req.query.q ? String(req.query.q) : undefined;
-    const isActive = req.query.isActive === undefined ? undefined : String(req.query.isActive) === "true";
-    const stockStatus = req.query.stockStatus ? String(req.query.stockStatus) as "IN_STOCK" | "OUT_OF_STOCK" : undefined;
+
+    // Support both 'status'/'stock' (new) and 'isActive'/'stockStatus' (legacy)
+    const status = req.query.status || req.query.isActive;
+    const stock = req.query.stock || req.query.stockStatus;
+
+    const isActive = status === undefined || status === 'ALL' ? undefined : String(status) === "true" || String(status) === "active";
+    const stockStatus = stock === undefined || stock === 'ALL' ? undefined : (stock === 'in_stock' || stock === 'IN_STOCK' ? 'IN_STOCK' : 'OUT_OF_STOCK');
 
     const data = await adminListProductsUsecase({ page, pageSize, q, isActive, stockStatus });
     return res.json(data);

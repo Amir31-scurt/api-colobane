@@ -6,7 +6,8 @@ export async function sellerListProductsUsecase(
     pageSize: number,
     search?: string,
     status?: string,
-    stock?: string
+    stock?: string,
+    categoryId?: number
 ) {
     const skip = (page - 1) * pageSize;
 
@@ -15,6 +16,12 @@ export async function sellerListProductsUsecase(
             ownerId: sellerId,
         },
     };
+
+    if (categoryId) {
+        whereCondition.categories = {
+            some: { id: categoryId }
+        };
+    }
 
     if (search) {
         whereCondition.OR = [

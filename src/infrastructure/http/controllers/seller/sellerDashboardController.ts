@@ -7,6 +7,7 @@ import { sellerListOrdersUsecase } from "../../../../core/usecases/seller/seller
 import { sellerUpdateBrandUsecase } from "../../../../core/usecases/seller/sellerUpdateBrandUsecase";
 import { sellerGetBrandUsecase } from "../../../../core/usecases/seller/sellerGetBrandUsecase";
 import { sellerGetProductUsecase } from "../../../../core/usecases/seller/sellerGetProductUsecase";
+import { sellerDeleteProductUsecase } from "../../../../core/usecases/seller/sellerDeleteProductUsecase";
 
 
 
@@ -29,8 +30,9 @@ export async function sellerListProductsController(req: Request, res: Response) 
         const search = req.query.q as string;
         const status = req.query.status as string;
         const stock = req.query.stock as string;
+        const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
 
-        const result = await sellerListProductsUsecase(userId, page, pageSize, search, status, stock);
+        const result = await sellerListProductsUsecase(userId, page, pageSize, search, status, stock, categoryId);
         return res.json(result);
     } catch (e) {
         console.error(e);
@@ -111,6 +113,20 @@ export async function sellerGetProductController(req: Request, res: Response) {
         const productId = Number(req.params.id);
         const product = await sellerGetProductUsecase(userId, productId);
         return res.json(product);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "PRODUCT_NOT_FOUND") return res.status(404).json({ error: "NOT_FOUND" });
+        if (e.message === "FORBIDDEN") return res.status(403).json({ error: "FORBIDDEN" });
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerDeleteProductController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const productId = Number(req.params.id);
+        await sellerDeleteProductUsecase(userId, productId);
+        return res.status(204).send();
     } catch (e: any) {
         console.error(e);
         if (e.message === "PRODUCT_NOT_FOUND") return res.status(404).json({ error: "NOT_FOUND" });

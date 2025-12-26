@@ -10,7 +10,8 @@ import {
     sellerGetProductController,
     sellerListOrdersController,
     sellerUpdateBrandController,
-    sellerGetBrandController
+    sellerGetBrandController,
+    sellerDeleteProductController
 } from "../controllers/seller/sellerDashboardController";
 import { getSellerFinances } from "../controllers/seller/sellerFinancesController";
 
@@ -92,6 +93,7 @@ router.post("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerCrea
  */
 router.patch("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerUpdateProductController);
 router.get("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerGetProductController);
+router.delete("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerDeleteProductController);
 
 /**
  * @swagger
