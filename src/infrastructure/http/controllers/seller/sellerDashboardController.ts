@@ -8,7 +8,13 @@ import { sellerUpdateBrandUsecase } from "../../../../core/usecases/seller/selle
 import { sellerGetBrandUsecase } from "../../../../core/usecases/seller/sellerGetBrandUsecase";
 import { sellerGetProductUsecase } from "../../../../core/usecases/seller/sellerGetProductUsecase";
 import { sellerDeleteProductUsecase } from "../../../../core/usecases/seller/sellerDeleteProductUsecase";
-
+import { createPromotionUsecase } from "../../../../core/usecases/promotions/createPromotionUsecase";
+import { listPromotionsUsecase } from "../../../../core/usecases/promotions/listPromotionsUsecase";
+import { getPromotionUsecase } from "../../../../core/usecases/promotions/getPromotionUsecase";
+import { updatePromotionUsecase } from "../../../../core/usecases/promotions/updatePromotionUsecase";
+import { togglePromotionUsecase } from "../../../../core/usecases/promotions/togglePromotionUsecase";
+import { assignPromotionToProductsUsecase } from "../../../../core/usecases/promotions/assignPromotionToProductsUsecase";
+import { prisma } from "../../../prisma/prismaClient";
 
 
 export async function sellerGetStatsController(req: Request, res: Response) {
@@ -131,6 +137,279 @@ export async function sellerDeleteProductController(req: Request, res: Response)
         console.error(e);
         if (e.message === "PRODUCT_NOT_FOUND") return res.status(404).json({ error: "NOT_FOUND" });
         if (e.message === "FORBIDDEN") return res.status(403).json({ error: "FORBIDDEN" });
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+// ==================== PROMOTIONS ====================
+
+export async function sellerCreatePromotionController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const body = req.body;
+
+        // Get seller's brand
+        const brand = await prisma.brand.findFirst({ where: { ownerId: userId } });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        // Create promotion restricted to seller's brand
+        const promotion = await createPromotionUsecase({
+            name: body.name,
+            description: body.description,
+            discountType: body.discountType,
+            discountValue: body.discountValue,
+            startsAt: new Date(body.startsAt),
+            endsAt: new Date(body.endsAt),
+            isActive: body.isActive ?? true,
+            productIds: body.productIds || [],
+            brandIds: [brand.id], // Restrict to seller's brand only
+            categoryIds: body.categoryIds || []
+        });
+
+        return res.status(201).json(promotion);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerListPromotionsController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+
+        // Get seller's brand
+        const brand = await prisma.brand.findFirst({ where: { ownerId: userId } });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        // Get only promotions for this seller's brand
+        const promotions = await prisma.promotion.findMany({
+            where: {
+                brands: {
+                    some: {
+                        id: brand.id
+                    }
+                }
+            },
+            include: {
+                products: {
+                    select: {
+                        id: true,
+                        name: true,
+                        price: true,
+                        thumbnailUrl: true
+                    }
+                },
+                brands: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                categories: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        return res.json(promotions);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerGetPromotionController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const promotionId = Number(req.params.id);
+
+        // Get seller's brand
+        const brand = await prisma.brand.findFirst({ where: { ownerId: userId } });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        // Get promotion and verify ownership
+        const promotion = await prisma.promotion.findFirst({
+            where: {
+                id: promotionId,
+                brands: {
+                    some: {
+                        id: brand.id
+                    }
+                }
+            },
+            include: {
+                products: true,
+                brands: true,
+                categories: true
+            }
+        });
+
+        if (!promotion) {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
+
+        return res.json(promotion);
+    } catch (e: any) {
+        console.error(e);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerUpdatePromotionController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const promotionId = Number(req.params.id);
+        const body = req.body;
+
+        // Get seller's brand
+        const brand = await prisma.brand.findFirst({ where: { ownerId: userId } });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        // Verify ownership
+        const existingPromotion = await prisma.promotion.findFirst({
+            where: {
+                id: promotionId,
+                brands: {
+                    some: {
+                        id: brand.id
+                    }
+                }
+            }
+        });
+
+        if (!existingPromotion) {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
+
+        // Update promotion
+        const promotion = await updatePromotionUsecase(promotionId, {
+            name: body.name,
+            description: body.description,
+            discountType: body.discountType,
+            discountValue: body.discountValue,
+            startsAt: body.startsAt ? new Date(body.startsAt) : undefined,
+            endsAt: body.endsAt ? new Date(body.endsAt) : undefined,
+            isActive: body.isActive
+        });
+
+        return res.json(promotion);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "PROMOTION_NOT_FOUND") {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerTogglePromotionController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const promotionId = Number(req.params.id);
+        const { isActive } = req.body;
+
+        // Get seller's brand
+        const brand = await prisma.brand.findFirst({ where: { ownerId: userId } });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        // Verify ownership
+        const existingPromotion = await prisma.promotion.findFirst({
+            where: {
+                id: promotionId,
+                brands: {
+                    some: {
+                        id: brand.id
+                    }
+                }
+            }
+        });
+
+        if (!existingPromotion) {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
+
+        // Toggle promotion
+        const promotion = await togglePromotionUsecase(promotionId, Boolean(isActive));
+        return res.json(promotion);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "PROMOTION_NOT_FOUND") {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerAssignPromotionToProductsController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const promotionId = Number(req.params.id);
+        const { productIds } = req.body;
+
+        // Get seller's brand
+        const brand = await prisma.brand.findFirst({ where: { ownerId: userId } });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        // Verify promotion ownership
+        const existingPromotion = await prisma.promotion.findFirst({
+            where: {
+                id: promotionId,
+                brands: {
+                    some: {
+                        id: brand.id
+                    }
+                }
+            }
+        });
+
+        if (!existingPromotion) {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
+
+        // Verify all products belong to seller
+        const products = await prisma.product.findMany({
+            where: {
+                id: { in: productIds },
+                brandId: brand.id
+            }
+        });
+
+        if (products.length !== productIds.length) {
+            return res.status(403).json({ error: "FORBIDDEN - Some products don't belong to you" });
+        }
+
+        // Assign products to promotion
+        const promotion = await assignPromotionToProductsUsecase(promotionId, productIds);
+        return res.json(promotion);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "PROMOTION_NOT_FOUND") {
+            return res.status(404).json({ error: "PROMOTION_NOT_FOUND" });
+        }
         return res.status(500).json({ error: "INTERNAL_ERROR" });
     }
 }

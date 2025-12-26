@@ -11,7 +11,13 @@ import {
     sellerListOrdersController,
     sellerUpdateBrandController,
     sellerGetBrandController,
-    sellerDeleteProductController
+    sellerDeleteProductController,
+    sellerCreatePromotionController,
+    sellerListPromotionsController,
+    sellerGetPromotionController,
+    sellerUpdatePromotionController,
+    sellerTogglePromotionController,
+    sellerAssignPromotionToProductsController
 } from "../controllers/seller/sellerDashboardController";
 import { getSellerFinances } from "../controllers/seller/sellerFinancesController";
 
@@ -160,5 +166,81 @@ router.patch("/brand", requireAuth, requireRole("SELLER", "ADMIN"), sellerUpdate
  *         description: Informations de la marque
  */
 router.get("/brand", requireAuth, requireRole("SELLER", "ADMIN"), sellerGetBrandController);
+
+// ==================== PROMOTIONS ====================
+
+/**
+ * @swagger
+ * /api/seller/promotions:
+ *   get:
+ *     summary: Liste les promotions du vendeur
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des promotions
+ *   post:
+ *     summary: Crée une nouvelle promotion
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Promotion créée
+ */
+router.get("/promotions", requireAuth, requireRole("SELLER", "ADMIN"), sellerListPromotionsController);
+router.post("/promotions", requireAuth, requireRole("SELLER", "ADMIN"), sellerCreatePromotionController);
+
+/**
+ * @swagger
+ * /api/seller/promotions/{id}:
+ *   get:
+ *     summary: Récupère une promotion
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Détails de la promotion
+ *   put:
+ *     summary: Met à jour une promotion
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Promotion mise à jour
+ */
+router.get("/promotions/:id", requireAuth, requireRole("SELLER", "ADMIN"), sellerGetPromotionController);
+router.put("/promotions/:id", requireAuth, requireRole("SELLER", "ADMIN"), sellerUpdatePromotionController);
+
+/**
+ * @swagger
+ * /api/seller/promotions/{id}/toggle:
+ *   put:
+ *     summary: Active/désactive une promotion
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statut de la promotion mis à jour
+ */
+router.put("/promotions/:id/toggle", requireAuth, requireRole("SELLER", "ADMIN"), sellerTogglePromotionController);
+
+/**
+ * @swagger
+ * /api/seller/promotions/{id}/products:
+ *   put:
+ *     summary: Assigne des produits à une promotion
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Produits assignés
+ */
+router.put("/promotions/:id/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerAssignPromotionToProductsController);
 
 export default router;
