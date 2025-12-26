@@ -63,7 +63,21 @@ export async function createBrandController(req: Request, res: Response) {
       }
     }
 
-    // Notify admins about new application (optional)
+    // Notify admins about new application
+    try {
+      await import("../../../core/services/notificationService").then(m =>
+        m.broadcastToAdmins(
+          "BRAND_PENDING",
+          "Nouvelle demande de vendeur",
+          `La boutique "${name}" attend votre approbation.`,
+          { brandId: brand.id, brandName: name }
+        )
+      );
+    } catch (e) {
+      console.error("Failed to notify admins:", e);
+    }
+
+    // Legacy email notification (optional, kept for redundancy)
     const adminEmail = process.env.ADMIN_EMAIL;
     if (adminEmail) {
       try {
