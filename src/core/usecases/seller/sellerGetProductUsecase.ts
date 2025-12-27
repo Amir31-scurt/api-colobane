@@ -7,6 +7,7 @@ export async function sellerGetProductUsecase(userId: number, productId: number)
             brand: true,
             categories: true,
             images: true,
+            variants: true,
         }
     });
 
