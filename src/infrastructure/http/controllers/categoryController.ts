@@ -20,8 +20,12 @@ export async function createCategoryController(req: Request, res: Response) {
 }
 
 export async function listCategoriesController(req: Request, res: Response) {
-  const categories = await listCategoriesUsecase();
-  return res.json(categories);
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.pageSize as string) || 10;
+  const q = (req.query.q as string) || "";
+
+  const result = await listCategoriesUsecase({ page, pageSize, search: q });
+  return res.json(result);
 }
 
 export async function getCategoryController(req: Request, res: Response) {

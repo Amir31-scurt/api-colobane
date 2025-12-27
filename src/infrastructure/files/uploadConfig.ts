@@ -29,6 +29,7 @@ const getFolder = (req: any) => {
   if (type === "variant") return "variants";
   if (type === "avatar") return "avatars";
   if (type === "product") return "products";
+  if (type === "brand") return "brands";
   return type || "uploads";
 };
 
