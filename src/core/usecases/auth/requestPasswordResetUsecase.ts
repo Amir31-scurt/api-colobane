@@ -25,7 +25,5 @@ export async function requestPasswordResetUsecase(email: string) {
   });
 
   // ICI: appeler un service d'envoi d'email plus tard
-  console.log(
-    `Reset password token pour ${email} : ${token} (TODO: envoyer par email)`
-  );
+
 }

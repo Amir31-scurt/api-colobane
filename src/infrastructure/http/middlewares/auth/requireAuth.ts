@@ -14,27 +14,16 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     const header = req.headers.authorization || "";
     const [scheme, token] = header.split(" ");
 
-    // Debug logging (remove in production)
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[requireAuth] Authorization header:", header ? `${scheme} ${token?.substring(0, 20)}...` : "MISSING");
-    }
-
     if (!token) {
-      console.warn("[requireAuth] No token provided");
       return res.status(401).json({ error: "UNAUTHORIZED", message: "No token provided" });
     }
 
     if (scheme?.toLowerCase() !== "bearer") {
-      console.warn("[requireAuth] Invalid auth scheme:", scheme);
       return res.status(401).json({ error: "UNAUTHORIZED", message: "Invalid auth scheme, use Bearer" });
     }
 
     const payload = verifyAccessToken(token);
     req.auth = { userId: Number(payload.sub), role: payload.role };
-
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[requireAuth] Auth successful for user:", payload.sub, "role:", payload.role);
-    }
 
     return next();
   } catch (error: any) {
