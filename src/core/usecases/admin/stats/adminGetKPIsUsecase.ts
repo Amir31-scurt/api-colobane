@@ -60,7 +60,7 @@ export async function adminGetKPIsUsecase() {
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
 
-    // 3. Top Products & Brands (Simplified for brevity, keeping existing logic)
+    // 3. Top Products & Brands
     const topProductsRaw = await prisma.orderItem.groupBy({
         by: ["productId"],
         _sum: { quantity: true },
@@ -68,34 +68,67 @@ export async function adminGetKPIsUsecase() {
         take: 5,
     });
 
-    // ... [Previous logic for top products/brands can remain or be simplified] 
-    // For this update I'll keep the response structure focus on KPIs with trends
+    const topProductsIds = topProductsRaw.map((p) => p.productId);
+    const topProductsDetails = await prisma.product.findMany({
+        where: { id: { in: topProductsIds } },
+        include: { brand: true }
+    });
 
-    // Fetch simplified top data to avoid breaking existing response shape entirely if needed
-    // But relying on simplified return for now.
+    const topProducts = topProductsRaw.map((item) => {
+        const product = topProductsDetails.find((p) => p.id === item.productId);
+        return {
+            id: item.productId,
+            name: product?.name || "Produit Inconnu",
+            thumbnail: product?.thumbnailUrl || product?.imageUrl,
+            price: product?.price || 0,
+            salesCount: item._sum.quantity || 0,
+            brandName: product?.brand?.name || "Admin"
+        };
+    });
 
     const trends = {
         revenue: calculateTrend(currentStats.revenue, prevStats.revenue),
         orders: calculateTrend(currentStats.ordersCount, prevStats.ordersCount),
         customers: calculateTrend(currentStats.newCustomersCount, prevStats.newCustomersCount),
-        aov: calculateTrend(currentStats.aov, prevStats.aov)
+        aov: calculateTrend(currentStats.aov, prevStats.aov),
+        products: 0, // Trends for total stock not tracked historically in this simple model
+        sellers: 0   // Trends for total sellers not tracked historically in this simplified model
     };
+
+    // Note: For products and sellers, real historical trends require a snapshot table. 
+    // For now we will return 0 or calculate based on 'createdAt' for "New Products/Sellers" flow if preferred.
+    // Let's use "New Objects" count as a proxy for trend momentum for now.
+
+    // Better approximation for "Active Growth":
+    const [newProductsCount, prevNewProductsCount] = await Promise.all([
+        prisma.product.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+        prisma.product.count({ where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } } })
+    ]);
+    const [newSellersCount, prevNewSellersCount] = await Promise.all([
+        prisma.user.count({ where: { role: "SELLER", createdAt: { gte: thirtyDaysAgo } } }),
+        prisma.user.count({ where: { role: "SELLER", createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } } })
+    ]);
+
+    trends.products = calculateTrend(newProductsCount, prevNewProductsCount);
+    trends.sellers = calculateTrend(newSellersCount, prevNewSellersCount);
 
     return {
         // Main KPIs with Trends
-        revenue: { value: totalRevenue, trend: trends.revenue }, // Comparison is on "velocity", Value is "Total"
+        revenue: { value: totalRevenue, trend: trends.revenue },
         orders: { value: totalOrders, trend: trends.orders },
         customers: { value: totalUsers, trend: trends.customers },
         averageOrderValue: { value: averageOrderValue, trend: trends.aov },
+        products: { value: await prisma.product.count(), trend: trends.products },
+        sellers: { value: await prisma.user.count({ where: { role: "SELLER" } }), trend: trends.sellers },
 
-        // Legacy fields for backward compatibility if needed, but updated
+        // Legacy fields
         totalRevenue,
         totalOrders,
         totalCustomers: totalUsers,
         totalProducts: await prisma.product.count(),
         totalSellers: await prisma.user.count({ where: { role: "SELLER" } }),
 
-        topProducts: [], // Placeholder to simplify this edit, usually fetch normally
-        topBrands: []    // Placeholder
+        topProducts,
+        topBrands: [] // Placeholder
     };
 }
