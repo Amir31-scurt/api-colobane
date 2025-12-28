@@ -18,6 +18,8 @@ import promotionRoutes from "./infrastructure/http/routes/promotionRoutes";
 import uploadRoutes from "./infrastructure/http/routes/uploadRoutes";
 import pushRoutes from "./infrastructure/http/routes/pushRoutes";
 import emailRoutes from "./infrastructure/http/routes/emailRoutes";
+import publicRoutes from "./infrastructure/http/routes/publicRoutes";
+
 import helmet from "helmet";
 import { corsOptions } from "./config/cors";
 import { apiRateLimiter } from "./config/rateLimit";
@@ -75,6 +77,8 @@ app.use("/api/delivery", deliveryRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/api/public", publicRoutes);
+
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/health", (_req, res) => {
   res.status(200).json({

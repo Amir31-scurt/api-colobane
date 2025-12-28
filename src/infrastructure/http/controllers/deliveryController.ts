@@ -1,8 +1,19 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import type { AuthRequest } from "../middlewares/authMiddleware";
 import { applyDeliveryToOrderUsecase } from "../../../core/usecases/delivery/applyDeliveryToOrderUsecase";
 import { assignDelivererUsecase } from "../../../core/usecases/delivery/assignDelivererUsecase";
 import { updateDeliveryStatusUsecase } from "../../../core/usecases/delivery/updateDeliveryStatusUsecase";
+import { listDeliveryZones } from "../../../core/usecases/delivery/listDeliveryZones";
+
+export async function listDeliveryZonesController(req: Request, res: Response) {
+  try {
+    const zones = await listDeliveryZones();
+    return res.json(zones);
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur récupération zones de livraison" });
+  }
+}
 
 export async function applyDeliveryController(req: AuthRequest, res: Response) {
   try {

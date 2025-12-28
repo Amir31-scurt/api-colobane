@@ -4,10 +4,14 @@ import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware";
 import {
   applyDeliveryController,
   assignDelivererController,
-  updateDeliveryStatusController
+  updateDeliveryStatusController,
+  listDeliveryZonesController
 } from "../controllers/deliveryController";
 
 const router = express.Router();
+
+// Public: List zones
+router.get("/zones", listDeliveryZonesController);
 
 // User choisit zone + méthode + adresse
 router.post("/apply", authRequired, applyDeliveryController);
