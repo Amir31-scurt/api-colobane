@@ -40,6 +40,7 @@ model User {
   AuditLog               AuditLog[]
   Payout                 Payout[]                 @relation("SellerPayouts")
   FeeRecord              FeeRecord[]              @relation("SellerFees")
+  favorites              Favorite[]
 }
 
 model EmailVerificationToken {
@@ -257,6 +258,7 @@ model Product {
   categories Category[]  @relation("ProductCategories")
   promotions Promotion[] @relation("PromotionProducts")
   orderItems OrderItem[]
+  favoritedBy Favorite[]
 }
 
 model Order {
@@ -461,4 +463,14 @@ enum AuditAction {
   USER_ROLE_UPDATED
   USER_BLOCKED
   USER_UNBLOCKED
+}
+
+model Favorite {
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([userId, productId])
 }

@@ -10,8 +10,13 @@ import {
   assignPromotionToBrandsController,
   assignPromotionToCategoriesController
 } from "../controllers/promotionController";
+import { listActivePromotionsController } from "../controllers/publicPromotionsController";
 
 const router = express.Router();
+
+// Public: Active promotions
+router.get("/active", listActivePromotionsController);
+
 
 router.get("/", authRequired, isAdmin, listPromotionsController);
 router.post("/", authRequired, isAdmin, createPromotionController);
