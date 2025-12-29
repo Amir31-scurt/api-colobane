@@ -43,6 +43,10 @@ export async function listProductsController(req: Request, res: Response) {
     const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
     const brandId = req.query.brandId ? Number(req.query.brandId) : undefined;
 
+    console.log("listProductsController query:", req.query);
+    console.log("listProductsController parsed search:", search);
+
+
     const result = await listProductsUsecase({
       page,
       limit,

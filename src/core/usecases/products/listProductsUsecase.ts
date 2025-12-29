@@ -18,6 +18,8 @@ export async function listProductsUsecase({
   brandId,
 }: ListProductsOptions = {}) {
   const where: Prisma.ProductWhereInput = {};
+  console.log("listProductsUsecase inputs:", { search, categoryId, brandId });
+
 
   if (search) {
     where.OR = [
@@ -37,6 +39,7 @@ export async function listProductsUsecase({
   }
 
   const skip = (page - 1) * limit;
+  console.log("listProductsUsecase WHERE clause:", JSON.stringify(where, null, 2));
 
   const [total, products] = await Promise.all([
     prisma.product.count({ where }),
