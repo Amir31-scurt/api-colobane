@@ -1,11 +1,10 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middlewares/authMiddleware';
+import { Request, Response } from 'express';
 import { toggleFavoriteUsecase } from '../../../core/usecases/users/toggleFavoriteUsecase';
 import { getFavoritesUsecase } from '../../../core/usecases/users/getFavoritesUsecase';
 
-export const toggleFavorite = async (req: AuthRequest, res: Response) => {
+export const toggleFavorite = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.auth?.userId;
         const { productId } = req.body;
 
         if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -19,9 +18,9 @@ export const toggleFavorite = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const getFavorites = async (req: AuthRequest, res: Response) => {
+export const getFavorites = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.id;
+        const userId = req.auth?.userId;
         if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
         const products = await getFavoritesUsecase(userId);

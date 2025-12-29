@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { toggleFavorite, getFavorites } from '../controllers/favoritesController';
-import { authRequired } from '../middlewares/authMiddleware';
+import { requireAuth } from '../middlewares/auth/requireAuth';
 
 const router = Router();
 
-router.post('/toggle', authRequired, toggleFavorite);
-router.get('/', authRequired, getFavorites);
+router.post('/toggle', requireAuth, toggleFavorite);
+router.get('/', requireAuth, getFavorites);
 
 export default router;
