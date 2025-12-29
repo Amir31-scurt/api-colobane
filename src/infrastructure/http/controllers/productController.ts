@@ -36,8 +36,26 @@ export async function updateProductController(req: Request, res: Response) {
 }
 
 export async function listProductsController(req: Request, res: Response) {
-  const products = await listProductsUsecase();
-  return res.json(products);
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 12;
+    const search = req.query.search?.toString();
+    const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
+    const brandId = req.query.brandId ? Number(req.query.brandId) : undefined;
+
+    const result = await listProductsUsecase({
+      page,
+      limit,
+      search,
+      categoryId,
+      brandId
+    });
+
+    return res.json(result);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors de la récupération des produits" });
+  }
 }
 
 export async function getProductController(req: Request, res: Response) {

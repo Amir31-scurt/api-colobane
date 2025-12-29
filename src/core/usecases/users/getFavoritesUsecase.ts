@@ -15,5 +15,5 @@ export async function getFavoritesUsecase(userId: number) {
         orderBy: { createdAt: 'desc' }
     });
 
-    return favorites.map(f => f.product);
+    return favorites.map((f: any) => f.product);
 }
