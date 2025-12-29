@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { listActivePromotions } from "../../../../core/usecases/promotions/listActivePromotions";
+import { listActivePromotions } from "../../../core/usecases/promotions/listActivePromotions";
 
 export async function listActivePromotionsController(req: Request, res: Response) {
     try {
