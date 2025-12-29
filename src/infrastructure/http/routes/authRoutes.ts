@@ -13,6 +13,7 @@ import {
   updateProfileController
 } from "../controllers/authController";
 import { authRequired } from "../middlewares/authMiddleware";
+import { requireAuth } from "../middlewares/auth/requireAuth";
 
 const router = express.Router();
 
@@ -81,8 +82,8 @@ router.post("/login", loginController);
  *       200:
  *         description: Profil utilisateur
  */
-router.get("/me", authRequired, meController);
-router.patch("/me", authRequired, updateProfileController);
+router.get("/me", requireAuth, meController);
+router.patch("/me", requireAuth, updateProfileController);
 
 router.post("/refresh-token", refreshTokenController);
 

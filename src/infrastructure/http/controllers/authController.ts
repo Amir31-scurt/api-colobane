@@ -15,6 +15,19 @@ export async function registerController(req: Request, res: Response) {
   try {
     const { name, email, password, phone } = req.body;
 
+    // Validation
+    if (!name || !email || !password || !phone) {
+      return res.status(400).json({
+        message: "Tous les champs sont requis",
+        missing: {
+          name: !name,
+          email: !email,
+          password: !password,
+          phone: !phone
+        }
+      });
+    }
+
     const user = await registerUser({ name, email, password, phone });
 
     return res.status(201).json({
@@ -25,7 +38,16 @@ export async function registerController(req: Request, res: Response) {
     if (err.message === "EMAIL_ALREADY_USED") {
       return res.status(409).json({ message: "Email déjà utilisé" });
     }
-    console.error(err);
+
+    // Handle Prisma validation errors
+    if (err.name === 'PrismaClientValidationError') {
+      return res.status(400).json({
+        message: "Données invalides",
+        error: err.message
+      });
+    }
+
+    console.error('[registerController] Error:', err);
     return res.status(500).json({ message: "Erreur interne" });
   }
 }
@@ -48,11 +70,37 @@ export async function loginController(req: Request, res: Response) {
     return res.status(500).json({ message: "Erreur interne" });
   }
 }
-export async function meController(req: AuthRequest, res: Response) {
-  if (!req.user) {
+export async function meController(req: Request, res: Response) {
+  try {
+    const actor = req.auth;
+    if (!actor) {
+      return res.status(401).json({ message: "Non authentifié" });
+    }
+
+    // Fetch fresh user data from DB
+    const { prisma } = await import("../../prisma/prismaClient");
+    const user = await prisma.user.findUnique({
+      where: { id: actor.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        avatarUrl: true,
+        createdAt: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable" });
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    console.error("[meController] Error:", error);
     return res.status(401).json({ message: "Non authentifié" });
   }
-  return res.json({ user: req.user });
 }
 
 export async function refreshTokenController(req: AuthRequest, res: Response) {

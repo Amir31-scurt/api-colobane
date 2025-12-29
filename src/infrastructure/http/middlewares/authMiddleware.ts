@@ -15,14 +15,19 @@ export interface AuthRequest extends Request {
 export function authRequired(req: AuthRequest, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
 
+  console.log('[authMiddleware] Authorization header:', header ? header.substring(0, 30) + '...' : 'missing');
+
   if (!header || !header.startsWith("Bearer ")) {
+    console.log('[authMiddleware] ❌ No Bearer token');
     return res.status(401).json({ message: "Token manquant" });
   }
 
   const token = header.split(" ")[1];
+  console.log('[authMiddleware] Token extracted:', token.substring(0, 20) + '...');
 
   try {
     const payload = verifyAccessToken(token);
+    console.log('[authMiddleware] ✅ Token valid. User:', payload.id, payload.email, payload.role);
     req.user = {
       id: payload.id,
       email: payload.email,
@@ -31,6 +36,7 @@ export function authRequired(req: AuthRequest, res: Response, next: NextFunction
     };
     return next();
   } catch (err) {
+    console.log('[authMiddleware] ❌ Token verification failed:', err);
     return res.status(401).json({ message: "Token invalide" });
   }
 }
