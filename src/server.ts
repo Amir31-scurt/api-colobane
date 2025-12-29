@@ -1,12 +1,19 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./docs/swagger";
+import { prisma } from "./infrastructure/prisma/prismaClient";
+import { corsOptions } from "./config/cors";
+import { apiRateLimiter } from "./config/rateLimit";
+import { globalErrorHandler } from "./infrastructure/http/middlewares/globalErrorHandler";
+import { AppError } from "./core/errors/AppError";
+
+// Routes Imports
 import authRoutes from "./infrastructure/http/routes/authRoutes";
 import brandRoutes from "./infrastructure/http/routes/brandRoutes";
 import productRoutes from "./infrastructure/http/routes/productRoutes";
 import orderRoutes from "./infrastructure/http/routes/orderRoutes";
-import { pool } from "./config/db";
-import swaggerUi from "swagger-ui-express";
-import { swaggerSpec } from "./docs/swagger";
 import adminRoutes from "./infrastructure/http/routes/adminRoutes";
 import categoryRoutes from "./infrastructure/http/routes/categoryRoutes";
 import paymentRoutes from "./infrastructure/http/routes/paymentRoutes";
@@ -21,29 +28,34 @@ import emailRoutes from "./infrastructure/http/routes/emailRoutes";
 import publicRoutes from "./infrastructure/http/routes/publicRoutes";
 import favoriteRoutes from "./infrastructure/http/routes/favoriteRoutes";
 
-import helmet from "helmet";
-import { corsOptions } from "./config/cors";
-import { apiRateLimiter } from "./config/rateLimit";
-import { prisma } from "./infrastructure/prisma/prismaClient";
-
-
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require("dotenv").config();
 }
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(apiRateLimiter);
-app.use(express.json());
+
+// Webhook handling often requires raw body, but assuming express.json generic usage here. 
+// If specific routes need raw body (like stripe), they should be mounted before this or handle it specifically.
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      (req as any).rawBody = buf.toString();
+    }
+  })
+);
 
 app.use((req, res, next) => {
   console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-
+// Root Route
 app.get("/", async (_, res) => {
   await prisma.$connect()
     .then(() => console.log("✅ Database connected"))
@@ -54,16 +66,20 @@ app.get("/", async (_, res) => {
   res.json({ status: "ok", message: "API Colobane TS opérationnelle" });
 });
 
+// Health Check
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "colobane-api",
+    timestamp: new Date().toISOString()
+  });
+});
 
-
-
-// Add this line
-app.set('trust proxy', 1);
-
-app.use(apiRateLimiter);
-app.use("/api/upload", uploadRoutes);
+// Static Files
 app.use("/uploads", express.static("uploads"));
 
+// API Routes
+app.use("/api/upload", uploadRoutes);
 app.use("/admin", adminRoutes);
 app.use("/email", emailRoutes);
 app.use("/api/auth", authRoutes);
@@ -81,45 +97,24 @@ app.use("/api/push", pushRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/favorites", favoriteRoutes);
 
+// Documentation
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get("/health", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "colobane-api",
-    timestamp: new Date().toISOString()
-  });
+
+// 404 Handler - Catch all other routes
+app.use((req, res, next) => {
+  next(new AppError(`Impossible de trouver ${req.originalUrl} sur ce serveur !`, 404));
 });
 
+// Global Error Handler
+app.use(globalErrorHandler);
 
-app.use(
-  express.json({
-    verify: (req, res, buf) => {
-      (req as any).rawBody = buf.toString();
-    }
-  })
-);
-
-
-/* =======================
-   HANDLER GLOBAL ERREURS
-======================= */
-app.use((err: any, _req: any, res: any, _next: any) => {
-  console.error("API Error:", err);
-  if (res.headersSent) {
-    return _next(err);
-  }
-  res.status(500).json({
-    status: "error",
-    message: err.message || "Erreur interne du serveur",
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-});
-
+// Start Server
 const port = process.env.PORT || 4000;
 app.listen(port, () =>
   console.log(`🚀 Colobane TS backend running on http://localhost:${port}`)
 );
 
+// DB Connection Check
 prisma.$connect()
   .then(() => console.log("✅ Database connected"))
   .catch((err: any) => {
