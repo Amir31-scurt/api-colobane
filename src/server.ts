@@ -27,6 +27,7 @@ import pushRoutes from "./infrastructure/http/routes/pushRoutes";
 import emailRoutes from "./infrastructure/http/routes/emailRoutes";
 import publicRoutes from "./infrastructure/http/routes/publicRoutes";
 import favoriteRoutes from "./infrastructure/http/routes/favoriteRoutes";
+import contactRoutes from "./infrastructure/http/routes/contactRoutes";
 
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -96,6 +97,7 @@ app.use("/api/promotions", promotionRoutes);
 app.use("/api/push", pushRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Documentation
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

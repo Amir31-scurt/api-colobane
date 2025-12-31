@@ -8,6 +8,7 @@ interface EmailParams {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }
 
 /**
@@ -15,13 +16,14 @@ interface EmailParams {
  * If RESEND_API_KEY is not set, logs the email for debugging
  */
 export async function sendEmail(params: EmailParams): Promise<boolean> {
-  const { to, subject, html } = params;
+  const { to, subject, html, replyTo } = params;
 
   // Log in development or if no API key
   if (!apiKey || process.env.NODE_ENV === "development") {
     console.log("📧 [Email]", {
       to,
       subject,
+      replyTo,
       preview: html.substring(0, 100) + "..."
     });
 
@@ -39,6 +41,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       to,
       subject,
       html,
+      replyTo: replyTo,
     });
 
     if (result.error) {
