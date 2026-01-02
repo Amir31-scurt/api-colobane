@@ -16,6 +16,7 @@ export async function listActivePromotions() {
                 select: {
                     id: true,
                     name: true,
+                    description: true,
                     slug: true,
                     price: true,
                     imageUrl: true,
