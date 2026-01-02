@@ -11,7 +11,11 @@ export const sendContactEmail = async (req: Request, res: Response, next: NextFu
         }
 
         // Target email for support
-        const supportEmail = process.env.SUPPORT_EMAIL || 'support@colobane.com';
+        // Note: In Resend Test mode, you must send to your verified email address.
+        const supportEmail = process.env.CONTACT_EMAIL || process.env.EMAIL_FROM || 'mycolobane@gmail.com';
+
+        console.log(`📧 Sending contact form email to: ${supportEmail}`);
+        console.log(`   From User: ${email} (${name})`);
 
         // Construct HTML email content
         const htmlContent = `
