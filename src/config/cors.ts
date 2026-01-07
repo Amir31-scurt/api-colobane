@@ -5,6 +5,9 @@ const allowedOrigins = [
   "http://localhost:3000",          // Expo local
   "http://localhost:19000",         // Expo legacy
   "https://mycolobane.com",
+  "https://admin.mycolobane.com",
+  "https://www.mycolobane.com",
+  "https://www.admin.mycolobane.com",
   "https://www.mycolobane.com",
 ];
 
