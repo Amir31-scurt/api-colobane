@@ -229,7 +229,7 @@ export async function googleLoginController(req: Request, res: Response) {
     if (err.message === "INVALID_GOOGLE_TOKEN") {
       return res.status(401).json({ message: "Token Google invalide" });
     }
-    if (err.message === "PHONE_REQUIRED_FOR_NEW_USER") {
+    if (err.message === "PHONE_REQUIRED_FOR_NEW_USER" || err.message === "PHONE_REQUIRED") {
       return res.status(422).json({ 
         message: "Numéro de téléphone requis pour l'inscription",
         code: "PHONE_REQUIRED" 

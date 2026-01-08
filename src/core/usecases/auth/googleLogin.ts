@@ -61,7 +61,8 @@ export async function googleLogin(input: GoogleLoginInput) {
     } else {
       // User doesn't exist, create new
       if (!input.phone) {
-        throw new Error("PHONE_REQUIRED_FOR_NEW_USER");
+        // This error will be caught by the controller and sent as 422 with code PHONE_REQUIRED
+        throw new Error("PHONE_REQUIRED");
       }
 
       // Check if phone unique
