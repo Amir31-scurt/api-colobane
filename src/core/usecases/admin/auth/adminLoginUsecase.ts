@@ -13,6 +13,7 @@ export async function adminLoginUsecase(email: string, password: string) {
     throw new Error("FORBIDDEN");
   }
 
+  if (!user.password) throw new Error("INVALID_CREDENTIALS");
   const ok = await verifyPassword(password, user.password);
   if (!ok) throw new Error("INVALID_CREDENTIALS");
 
