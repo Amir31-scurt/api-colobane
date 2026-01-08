@@ -212,7 +212,6 @@ export async function updateProfileController(req: AuthRequest, res: Response) {
 }
 
 import { googleLogin } from "../../../core/usecases/auth/googleLogin";
-import { facebookLogin } from "../../../core/usecases/auth/facebookLogin";
 
 export async function googleLoginController(req: Request, res: Response) {
   try {
@@ -242,22 +241,24 @@ export async function googleLoginController(req: Request, res: Response) {
   }
 }
 
-export async function facebookLoginController(req: Request, res: Response) {
+import { appleLogin } from "../../../core/usecases/auth/appleLogin";
+
+export async function appleLoginController(req: Request, res: Response) {
   try {
-    const { token, phone } = req.body;
+    const { token, phone, name } = req.body;
     if (!token) return res.status(400).json({ message: "Token requis" });
 
-    const result = await facebookLogin({ token, phone });
+    const result = await appleLogin({ token, phone, name });
     return res.json({
-      message: "Connexion Facebook réussie",
+      message: "Connexion Apple réussie",
       ...result
     });
   } catch (err: any) {
-    console.error("Facebook Login Error:", err);
-    if (err.message === "INVALID_FACEBOOK_TOKEN") {
-      return res.status(401).json({ message: "Token Facebook invalide" });
+    console.error("Apple Login Error:", err);
+    if (err.message === "INVALID_APPLE_TOKEN") {
+      return res.status(401).json({ message: "Token Apple invalide" });
     }
-    if (err.message === "PHONE_REQUIRED_FOR_NEW_USER") {
+    if (err.message === "PHONE_REQUIRED_FOR_NEW_USER" || err.message === "PHONE_REQUIRED") {
       return res.status(422).json({ 
         message: "Numéro de téléphone requis pour l'inscription",
         code: "PHONE_REQUIRED" 
@@ -266,6 +267,6 @@ export async function facebookLoginController(req: Request, res: Response) {
     if (err.message === "PHONE_ALREADY_USED") {
       return res.status(409).json({ message: "Ce numéro de téléphone est déjà utilisé par un autre compte." });
     }
-    return res.status(500).json({ message: "Erreur lors de la connexion Facebook" });
+    return res.status(500).json({ message: "Erreur lors de la connexion Apple" });
   }
 }
