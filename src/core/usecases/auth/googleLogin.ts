@@ -18,10 +18,21 @@ export async function googleLogin(input: GoogleLoginInput) {
   // 1. Verify token with Google
   let googleUser: GoogleUser;
   try {
+    // Try as ID Token first
     const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`);
     googleUser = response.data;
   } catch (error) {
-    throw new Error("INVALID_GOOGLE_TOKEN");
+    try {
+        // Try as Access Token (UserInfo endpoint)
+        const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+            headers: { Authorization: `Bearer ${input.token}` }
+        });
+        googleUser = response.data;
+    } catch (err2: any) {
+        console.error("Google verify error:", err2.response?.data || err2.message);
+        console.log("Token received:", input.token);
+        throw new Error("INVALID_GOOGLE_TOKEN");
+    }
   }
 
   const { sub: googleId, email, name, picture } = googleUser;
