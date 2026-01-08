@@ -10,7 +10,9 @@ import {
   verifyOtpController,
   requestOtpController,
   logoutController,
-  updateProfileController
+  updateProfileController,
+  googleLoginController,
+  facebookLoginController
 } from "../controllers/authController";
 import { authRequired } from "../middlewares/authMiddleware";
 import { requireAuth } from "../middlewares/auth/requireAuth";
@@ -92,6 +94,10 @@ router.post("/reset-password", resetPasswordController);
 
 router.post("/otp/request", requestOtpController);
 router.post("/otp/verify", verifyOtpController);
+
+
+router.post("/google", googleLoginController);
+router.post("/facebook", facebookLoginController);
 
 /**
  * @swagger

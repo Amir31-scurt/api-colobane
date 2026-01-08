@@ -210,3 +210,62 @@ export async function updateProfileController(req: AuthRequest, res: Response) {
     return res.status(500).json({ message: "Erreur interne" });
   }
 }
+
+import { googleLogin } from "../../../core/usecases/auth/googleLogin";
+import { facebookLogin } from "../../../core/usecases/auth/facebookLogin";
+
+export async function googleLoginController(req: Request, res: Response) {
+  try {
+    const { token, phone } = req.body;
+    if (!token) return res.status(400).json({ message: "Token requis" });
+
+    const result = await googleLogin({ token, phone });
+    return res.json({
+      message: "Connexion Google réussie",
+      ...result
+    });
+  } catch (err: any) {
+    console.error("Google Login Error:", err);
+    if (err.message === "INVALID_GOOGLE_TOKEN") {
+      return res.status(401).json({ message: "Token Google invalide" });
+    }
+    if (err.message === "PHONE_REQUIRED_FOR_NEW_USER") {
+      return res.status(422).json({ 
+        message: "Numéro de téléphone requis pour l'inscription",
+        code: "PHONE_REQUIRED" 
+      });
+    }
+    if (err.message === "PHONE_ALREADY_USED") {
+      return res.status(409).json({ message: "Ce numéro de téléphone est déjà utilisé par un autre compte." });
+    }
+    return res.status(500).json({ message: "Erreur lors de la connexion Google" });
+  }
+}
+
+export async function facebookLoginController(req: Request, res: Response) {
+  try {
+    const { token, phone } = req.body;
+    if (!token) return res.status(400).json({ message: "Token requis" });
+
+    const result = await facebookLogin({ token, phone });
+    return res.json({
+      message: "Connexion Facebook réussie",
+      ...result
+    });
+  } catch (err: any) {
+    console.error("Facebook Login Error:", err);
+    if (err.message === "INVALID_FACEBOOK_TOKEN") {
+      return res.status(401).json({ message: "Token Facebook invalide" });
+    }
+    if (err.message === "PHONE_REQUIRED_FOR_NEW_USER") {
+      return res.status(422).json({ 
+        message: "Numéro de téléphone requis pour l'inscription",
+        code: "PHONE_REQUIRED" 
+      });
+    }
+    if (err.message === "PHONE_ALREADY_USED") {
+      return res.status(409).json({ message: "Ce numéro de téléphone est déjà utilisé par un autre compte." });
+    }
+    return res.status(500).json({ message: "Erreur lors de la connexion Facebook" });
+  }
+}

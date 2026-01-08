@@ -15,6 +15,10 @@ export async function loginUsecase(email: string, password: string) {
     throw new Error("INVALID_CREDENTIALS");
   }
 
+  if (!user.password) {
+    throw new Error("INVALID_CREDENTIALS");
+  }
+
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
     throw new Error("INVALID_CREDENTIALS");
@@ -22,7 +26,7 @@ export async function loginUsecase(email: string, password: string) {
 
   const payload = {
     id: user.id,
-    email: user.email,
+    email: user.email!, // email checked above
     role: user.role,
     phone: user.phone
   };
