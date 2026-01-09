@@ -1,0 +1,243 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.orderConfirmationEmail = orderConfirmationEmail;
+exports.orderShippedEmail = orderShippedEmail;
+exports.orderDeliveredEmail = orderDeliveredEmail;
+exports.orderCancelledEmail = orderCancelledEmail;
+exports.paymentConfirmedEmail = paymentConfirmedEmail;
+const baseTemplate_1 = require("./baseTemplate");
+/**
+ * Order Confirmation Email
+ * Sent when a new order is created
+ */
+function orderConfirmationEmail(data) {
+    const itemsHtml = data.items?.map(item => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+        <strong>${item.name}</strong><br>
+        <span style="color: #999; font-size: 13px;">Quantité: ${item.quantity}</span>
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right;">
+        ${formatPrice(item.price * item.quantity)}
+      </td>
+    </tr>
+  `).join('') || '';
+    const subtotal = data.totalAmount - data.deliveryFee;
+    const content = `
+    <p>Bonjour ${data.customerName},</p>
+    
+    <p>Merci pour votre commande ! Nous avons bien reçu votre commande <strong>#${data.orderNumber}</strong> et nous commençons à la préparer.</p>
+
+    <div class="info-box">
+      <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Résumé de la commande</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${itemsHtml}
+        <tr>
+          <td style="padding: 12px 0; font-size: 14px; color: #666;">Sous-total</td>
+          <td style="padding: 12px 0; text-align: right; color: #666;">${formatPrice(subtotal)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px 0; font-size: 14px; color: #666;">Frais de livraison</td>
+          <td style="padding: 12px 0; text-align: right; color: #666;">${formatPrice(data.deliveryFee)}</td>
+        </tr>
+        <tr style="border-top: 2px solid #f59e0b;">
+          <td style="padding: 15px 0; font-size: 18px; font-weight: bold;">Total</td>
+          <td style="padding: 15px 0; text-align: right; font-size: 18px; font-weight: bold; color: #f59e0b;">${formatPrice(data.totalAmount)}</td>
+        </tr>
+      </table>
+    </div>
+
+    ${data.deliveryAddress ? `
+      <div style="margin: 25px 0;">
+        <h3 style="font-size: 16px; color: #333; margin-bottom: 10px;">📍 Adresse de livraison</h3>
+        <p style="color: #666; margin: 0; padding: 12px; background-color: #f8f9fa; border-radius: 6px;">
+          ${data.deliveryAddress}
+        </p>
+      </div>
+    ` : ''}
+
+    ${data.paymentMethod ? `
+      <div style="margin: 25px 0;">
+        <h3 style="font-size: 16px; color: #333; margin-bottom: 10px;">💳 Mode de paiement</h3>
+        <p style="color: #666; margin: 0;">${data.paymentMethod}</p>
+      </div>
+    ` : ''}
+
+    <p style="margin-top: 30px;">Nous vous tiendrons informé de l'avancement de votre commande par email et notification.</p>
+    
+    <p style="color: #999; font-size: 14px; margin-top: 25px;">
+      Une question ? Notre équipe est là pour vous aider !
+    </p>
+  `;
+    return {
+        subject: `✓ Commande confirmée #${data.orderNumber}`,
+        html: (0, baseTemplate_1.baseEmailTemplate)({
+            title: 'Commande confirmée ! 🎉',
+            preheader: `Votre commande #${data.orderNumber} a bien été enregistrée`,
+            content,
+            ctaButton: data.trackingUrl ? {
+                text: 'Suivre ma commande',
+                url: data.trackingUrl
+            } : undefined
+        })
+    };
+}
+/**
+ * Order Shipped Email
+ * Sent when order status changes to SHIPPED
+ */
+function orderShippedEmail(data) {
+    const content = `
+    <p>Bonjour ${data.customerName},</p>
+    
+    <p>Bonne nouvelle ! Votre commande <strong>#${data.orderNumber}</strong> est en route et sera bientôt chez vous ! 📦</p>
+
+    <div class="info-box">
+      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Informations d'expédition</h3>
+      <p style="margin: 5px 0; color: #666;">
+        <strong>Numéro de commande:</strong> ${data.orderNumber}<br>
+        <strong>Montant total:</strong> ${formatPrice(data.totalAmount)}
+      </p>
+    </div>
+
+    ${data.deliveryAddress ? `
+      <div style="margin: 25px 0;">
+        <h3 style="font-size: 16px; color: #333; margin-bottom: 10px;">📍 Adresse de livraison</h3>
+        <p style="color: #666; margin: 0; padding: 12px; background-color: #f8f9fa; border-radius: 6px;">
+          ${data.deliveryAddress}
+        </p>
+      </div>
+    ` : ''}
+
+    <p style="margin-top: 30px;">Assurez-vous d'être disponible pour réceptionner votre colis.</p>
+  `;
+    return {
+        subject: `📦 Votre commande #${data.orderNumber} est en route !`,
+        html: (0, baseTemplate_1.baseEmailTemplate)({
+            title: 'Votre commande est en route ! 🚚',
+            preheader: `Votre commande #${data.orderNumber} a été expédiée`,
+            content,
+            ctaButton: data.trackingUrl ? {
+                text: 'Suivre ma livraison',
+                url: data.trackingUrl
+            } : undefined
+        })
+    };
+}
+/**
+ * Order Delivered Email
+ * Sent when order status changes to DELIVERED
+ */
+function orderDeliveredEmail(data) {
+    const content = `
+    <p>Bonjour ${data.customerName},</p>
+    
+    <p>Votre commande <strong>#${data.orderNumber}</strong> a été livrée avec succès ! ✨</p>
+
+    <div class="info-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white;">
+      <h3 style="margin: 0 0 10px 0; font-size: 18px; color: white;">🎉 Livraison réussie !</h3>
+      <p style="margin: 5px 0; color: rgba(255,255,255,0.9);">
+        Nous espérons que vous êtes satisfait de votre achat.
+      </p>
+    </div>
+
+    <p style="margin-top: 25px;">Nous serions ravis d'avoir votre avis sur cette commande ! Votre retour nous aide à améliorer notre service.</p>
+
+    <p style="margin-top: 30px; color: #666;">
+      Merci de votre confiance et à très bientôt sur Colobane ! 💜
+    </p>
+  `;
+    return {
+        subject: `✅ Commande #${data.orderNumber} livrée !`,
+        html: (0, baseTemplate_1.baseEmailTemplate)({
+            title: 'Commande livrée ! 🎊',
+            preheader: `Votre commande #${data.orderNumber} a été livrée`,
+            content,
+            ctaButton: {
+                text: 'Découvrir nos produits',
+                url: 'https://colobane.com/products'
+            }
+        })
+    };
+}
+/**
+ * Order Cancelled Email
+ * Sent when an order is cancelled
+ */
+function orderCancelledEmail(data) {
+    const content = `
+    <p>Bonjour ${data.customerName},</p>
+    
+    <p>Votre commande <strong>#${data.orderNumber}</strong> a été annulée.</p>
+
+    ${data.reason ? `
+      <div class="info-box">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Motif de l'annulation</h3>
+        <p style="margin: 0; color: #666;">${data.reason}</p>
+      </div>
+    ` : ''}
+
+    <p style="margin-top: 25px;">Si vous avez effectué un paiement, le remboursement sera traité dans les prochains jours ouvrables.</p>
+
+    <p style="margin-top: 20px; color: #666;">
+      Si vous avez des questions concernant cette annulation, n'hésitez pas à nous contacter.
+    </p>
+  `;
+    return {
+        subject: `❌ Commande #${data.orderNumber} annulée`,
+        html: (0, baseTemplate_1.baseEmailTemplate)({
+            title: 'Commande annulée',
+            preheader: `Votre commande #${data.orderNumber} a été annulée`,
+            content,
+            ctaButton: {
+                text: 'Nous contacter',
+                url: 'https://colobane.com/contact'
+            }
+        })
+    };
+}
+/**
+ * Payment Confirmation Email
+ * Sent when payment is confirmed
+ */
+function paymentConfirmedEmail(data) {
+    const content = `
+    <p>Bonjour ${data.customerName},</p>
+    
+    <p>Votre paiement pour la commande <strong>#${data.orderNumber}</strong> a été confirmé avec succès ! 💚</p>
+
+    <div class="info-box">
+      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Détails du paiement</h3>
+      <p style="margin: 5px 0; color: #666;">
+        <strong>Numéro de commande:</strong> ${data.orderNumber}<br>
+        <strong>Montant payé:</strong> ${formatPrice(data.totalAmount)}<br>
+        ${data.paymentMethod ? `<strong>Méthode:</strong> ${data.paymentMethod}` : ''}
+      </p>
+    </div>
+
+    <p style="margin-top: 25px;">Nous préparons maintenant votre commande et vous tiendrons informé à chaque étape.</p>
+  `;
+    return {
+        subject: `✓ Paiement confirmé pour la commande #${data.orderNumber}`,
+        html: (0, baseTemplate_1.baseEmailTemplate)({
+            title: 'Paiement confirmé ! ✓',
+            preheader: `Votre paiement de ${formatPrice(data.totalAmount)} a été reçu`,
+            content,
+            ctaButton: data.trackingUrl ? {
+                text: 'Suivre ma commande',
+                url: data.trackingUrl
+            } : undefined
+        })
+    };
+}
+/**
+ * Helper function to format prices
+ */
+function formatPrice(amount) {
+    return new Intl.NumberFormat('fr-SN', {
+        style: 'currency',
+        currency: 'XOF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
