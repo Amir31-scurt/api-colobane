@@ -33,7 +33,6 @@ export async function updateBrandUsecase(input: UpdateBrandInput) {
     where: { id: brandId },
     data: {
       ...data,
-      updatedAt: new Date()
     }
   });
 
