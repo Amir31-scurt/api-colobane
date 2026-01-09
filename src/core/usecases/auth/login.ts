@@ -1,7 +1,7 @@
 // src/core/usecases/auth/loginUser
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcryptjs";
-import jwt, { type SignOptions } from "jsonwebtoken";
+import { createAccessToken } from "../../services/tokenService";
 
 interface LoginInput {
   email: string;
@@ -28,17 +28,13 @@ export async function loginUser(input: LoginInput) {
 
   // Create token with format compatible with requireAuth middleware
   // Must include: sub (userId), role, type: "access"
-  const token = jwt.sign(
-    {
-      sub: String(user.id),  // userId as string
-      id: user.id,           // Keep for backward compatibility
-      email: user.email,
+  // Create token using centralized service
+  const token = createAccessToken({
+      id: user.id,
+      email: user.email!,
       role: user.role,
-      type: "access"         // Required by jwt.ts verifyAccessToken
-    },
-    String(process.env.JWT_SECRET),
-    { expiresIn: String(process.env.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"] }
-  );
+      phone: user.phone
+  });
 
   return {
     user: {

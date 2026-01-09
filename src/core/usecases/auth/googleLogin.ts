@@ -1,5 +1,5 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
-import jwt, { type SignOptions } from "jsonwebtoken";
+import { createAccessToken } from "../../services/tokenService";
 import axios from "axios";
 
 interface GoogleLoginInput {
@@ -97,18 +97,13 @@ export async function googleLogin(input: GoogleLoginInput) {
   }
 
   // 5. Generate Token
-  const token = jwt.sign(
-    {
-      sub: String(user.id),
+  // 5. Generate Token
+  const token = createAccessToken({
       id: user.id,
       email: user.email!,
       role: user.role,
-      phone: user.phone,
-      type: "access"
-    },
-    String(process.env.JWT_SECRET),
-    { expiresIn: String(process.env.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"] }
-  );
+      phone: user.phone
+  });
 
   return {
     user: {
