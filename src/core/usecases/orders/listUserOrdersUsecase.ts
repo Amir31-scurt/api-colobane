@@ -10,7 +10,10 @@ export async function listUserOrdersUsecase(userId: number) {
           product: true,
           variant: true
         }
-      }
+      },
+      deliveryMethod: true,
+      deliveryLocation: true,
+      Payment: true,
     }
   });
 }
