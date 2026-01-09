@@ -19,7 +19,7 @@ if (!JWT_ACCESS_SECRET || !JWT_REFRESH_SECRET) {
 }
 
 export function createAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_ACCESS_SECRET, {
+  return jwt.sign({ ...payload, type: 'access' }, JWT_ACCESS_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN
   });
 }
