@@ -6,6 +6,11 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Seeding data...');
 
+    // 0. Cleanup
+    console.log('Cleaning up old data...');
+    await prisma.referenceLocation.deleteMany({});
+    await prisma.deliveryZone.deleteMany({});
+
     // 1. Seed Delivery Methods
     console.log('Seeding Delivery Methods...');
     const methods = [

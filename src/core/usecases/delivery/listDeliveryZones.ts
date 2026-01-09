@@ -9,7 +9,10 @@ export async function listDeliveryZones() {
             city: true,
             baseFee: true,
             minAmountFree: true,
-            // perKmFee if needed
+            locations: {
+                where: { isActive: true },
+                select: { id: true, name: true }
+            }
         }
     });
 }
