@@ -1,5 +1,11 @@
 # Colobane Marketplace API
 
+> **🚀 Deployment Status:**
+> This API is deployed and hosted on **Railway**.
+> - **Environment**: Production
+> - **Platform**: Railway
+
+
 The robust backend core for the Colobane Marketplace, built with **Node.js**, **Express**, and **TypeScript**. It follows a clean architecture approach, separating business logic (use cases) from infrastructure (database, third-party services).
 
 ## 🚀 Core Features
