@@ -13,7 +13,7 @@
     "seed:delivery": "tsx src/scripts/seedDelivery.ts"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
