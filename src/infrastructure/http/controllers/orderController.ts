@@ -12,7 +12,8 @@ export async function createOrderController(req: AuthRequest, res: Response) {
       userId: req.user!.id,
       items: req.body.items,
       deliveryMethodId: req.body.deliveryMethodId,
-      deliveryLocationId: req.body.deliveryLocationId
+      deliveryLocationId: req.body.deliveryLocationId,
+      shippingAddress: req.body.shippingAddress
     });
 
     return res.status(201).json(order);

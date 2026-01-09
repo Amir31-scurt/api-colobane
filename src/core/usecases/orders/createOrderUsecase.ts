@@ -17,10 +17,11 @@ interface CreateOrderInput {
   // New Delivery Inputs
   deliveryMethodId: number;
   deliveryLocationId?: number; // Optional if Self-Collect, but good to have
+  shippingAddress: string;
 }
 
 export async function createOrderUsecase(input: CreateOrderInput) {
-  const { userId, items, deliveryMethodId, deliveryLocationId } = input;
+  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress } = input;
 
   if (!items || items.length === 0) {
     throw new Error("EMPTY_ORDER");
@@ -204,6 +205,7 @@ export async function createOrderUsecase(input: CreateOrderInput) {
       deliveryMethodId: deliveryMethod.id,
       deliveryLocationId: deliveryLocationId,
       deliveryZoneId: deliveryZoneId,
+      shippingAddress: shippingAddress,
       items: {
         create: orderItemsData
       },
