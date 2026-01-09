@@ -288,6 +288,7 @@ model Product {
 
 model Order {
   id               Int             @id @default(autoincrement())
+  orderNumber      String          @unique // Public-facing secure order number
   user             User            @relation(fields: [userId], references: [id])
   userId           Int
   totalAmount      Float
