@@ -12,6 +12,8 @@ export async function getOrderTrackingUsecase(orderId: number, userId: number, i
           variant: true
         }
       },
+      deliveryMethod: true,
+      deliveryLocation: true,
       Payment: true,
       statusHistory: {
         orderBy: { createdAt: "asc" }
