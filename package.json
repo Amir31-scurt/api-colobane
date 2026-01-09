@@ -11,7 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "seed:delivery": "tsx src/scripts/seedDelivery.ts",
-    "fix:railway": "tsx src/scripts/fixRailway.ts"
+    "fix:railway": "tsx src/scripts/fixRailway.ts",
+    "railway:start": "node railway-start.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

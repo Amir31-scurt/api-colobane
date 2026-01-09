@@ -5,32 +5,29 @@ The migration `20260109215603_add_order_number` is stuck in a "failed" state on 
 
 ## Solution
 
-### Step 1: Run the Fix Script on Railway
+### Step 1: Update Railway START Command (Not Build Command!)
 
-You have two options:
+**Important**: The database is NOT available during build time on Railway. We need to run the fix at **runtime** (when starting the server).
 
-#### Option A: Add to Build Command (Temporary)
-In your Railway dashboard, temporarily change the build command to:
+In your Railway dashboard:
+
+1. Go to your service settings
+2. Find the **Start Command** setting (NOT Build Command)
+3. **Temporarily** change it to:
 ```bash
-npm run fix:railway && npm run prisma:migrate && npm run build
+npm run railway:start
 ```
 
-This will:
-1. Delete the failed migration record
-2. Run migrations (which will now succeed)
-3. Build the app
+This command will:
+1. ✅ Run the migration fix (delete stuck record)
+2. ✅ Run database migrations
+3. ✅ Start your server
 
-#### Option B: Run via Railway CLI
-If you have Railway CLI installed:
-```bash
-railway run npm run fix:railway
-railway run npm run prisma:migrate
-```
+### Step 2: Keep Build Command Normal
 
-### Step 2: Restore Normal Build Command
-After the fix runs successfully once, restore your build command to:
+Your **Build Command** should remain:
 ```bash
-npm run prisma:migrate && npm run build
+npm run build
 ```
 
 ## What the Fix Does
@@ -52,3 +49,13 @@ Then verify the migration succeeded:
 ```
 ✔ Applied migration: 20260109215603_add_order_number
 ```
+
+### Step 3: Restore Normal Start Command (After First Successful Deploy)
+
+Once the migration is fixed and working, you can restore your start command to just:
+```bash
+npm run start
+```
+
+Or keep using `npm run railway:start` - it's smart enough to skip the fix if not needed.
+
