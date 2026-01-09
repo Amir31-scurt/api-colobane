@@ -13,7 +13,8 @@ export async function createOrderController(req: AuthRequest, res: Response) {
       items: req.body.items,
       deliveryMethodId: req.body.deliveryMethodId,
       deliveryLocationId: req.body.deliveryLocationId,
-      shippingAddress: req.body.shippingAddress
+      shippingAddress: req.body.shippingAddress,
+      paymentProvider: req.body.paymentProvider
     });
 
     return res.status(201).json(order);

@@ -18,10 +18,11 @@ interface CreateOrderInput {
   deliveryMethodId: number;
   deliveryLocationId?: number; // Optional if Self-Collect, but good to have
   shippingAddress: string;
+  paymentProvider: 'WAVE' | 'ORANGE_MONEY' | 'CASH';
 }
 
 export async function createOrderUsecase(input: CreateOrderInput) {
-  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress } = input;
+  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress, paymentProvider } = input;
 
   if (!items || items.length === 0) {
     throw new Error("EMPTY_ORDER");
@@ -209,10 +210,19 @@ export async function createOrderUsecase(input: CreateOrderInput) {
       items: {
         create: orderItemsData
       },
+      Payment: {
+        create: {
+          provider: paymentProvider,
+          amount: finalTotalAmount,
+          currency: 'XOF',
+          status: paymentProvider === 'CASH' ? 'PENDING' : 'INITIATED'
+        }
+      },
       status: "PENDING"
     },
     include: {
-      items: true
+      items: true,
+      Payment: true
     }
   });
 
