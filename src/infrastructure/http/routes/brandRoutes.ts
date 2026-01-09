@@ -1,6 +1,6 @@
 // src/infrastructure/http/routes/brandRoutes.ts
 import express from "express";
-import { createBrandController, listBrandsController, getBrandController }
+import { createBrandController, listBrandsController, getBrandController, updateBrandController }
   from "../controllers/brandController";
 
 import { requireAuth } from "../middlewares/auth/requireAuth";

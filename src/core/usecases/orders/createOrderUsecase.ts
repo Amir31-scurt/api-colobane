@@ -3,6 +3,7 @@ import { NotificationType } from "../../constants/notificationTypes";
 import { buildNotificationContent } from "../../factories/notificationFactory";
 import { calculateFinalPrice } from "../../helpers/calculateFinalPrice";
 import { sendNotification } from "../../services/notificationService";
+import { calculateDistance, calculateDeliveryFee } from "../../helpers/geoUtils";
 
 interface OrderItemInput {
   productId: number;
@@ -13,21 +14,37 @@ interface OrderItemInput {
 interface CreateOrderInput {
   userId: number;
   items: OrderItemInput[];
+  // New Delivery Inputs
+  deliveryMethodId: number;
+  deliveryLocationId?: number; // Optional if Self-Collect, but good to have
 }
 
 export async function createOrderUsecase(input: CreateOrderInput) {
-  const { userId, items } = input;
+  const { userId, items, deliveryMethodId, deliveryLocationId } = input;
 
   if (!items || items.length === 0) {
     throw new Error("EMPTY_ORDER");
   }
 
+  // 1. Fetch Delivery Method
+  const deliveryMethod = await prisma.deliveryMethod.findUnique({
+    where: { id: deliveryMethodId }
+  });
+
+  if (!deliveryMethod) throw new Error("INVALID_DELIVERY_METHOD");
+
+  // 2. Fetch Products with Brand & Location Info
   const productIds = items.map((i) => i.productId);
 
   const products = await prisma.product.findMany({
     where: { id: { in: productIds } },
     include: {
-      brand: { include: { promotions: true } },
+      brand: { 
+        include: { 
+          promotions: true,
+          location: { include: { deliveryZone: true } } // Fetch Brand Location
+        } 
+      },
       promotions: true,
       categories: { include: { promotions: true } },
       variants: true
@@ -38,7 +55,59 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     throw new Error("INVALID_PRODUCT");
   }
 
-  let total = 0;
+  // 3. Delivery Fee Calculation Logic
+  let totalDeliveryFee = 0;
+  let deliveryZoneId: number | null = null;
+  
+  if (deliveryMethod.code === 'SELF_COLLECT') {
+     // Fee is always 0 for pickup
+     totalDeliveryFee = 0;
+  } else {
+     // STANDARD DELIVERY
+     if (!deliveryLocationId) throw new Error("DELIVERY_LOCATION_REQUIRED");
+
+     const deliveryLocation = await prisma.referenceLocation.findUnique({
+       where: { id: deliveryLocationId },
+       include: { deliveryZone: true }
+     });
+
+     if (!deliveryLocation) throw new Error("INVALID_DELIVERY_LOCATION");
+     
+     // Set primary zone for order reference (e.g. for analytics)
+     deliveryZoneId = deliveryLocation.deliveryZoneId;
+
+     // Group products by Brand to calculate distance per vendor
+     // (Simple version: Sum of distances or Max distance? Usually sum of separate deliveries)
+     const brandIds = new Set(products.map(p => p.brandId));
+     
+     for (const brandId of brandIds) {
+        const brandProduct = products.find(p => p.brandId === brandId);
+        const brand = brandProduct?.brand;
+
+        if (!brand || !brand.location) {
+           // Fallback if brand has no location set yet: Use a default or throw
+           // For migration safety: use default fee
+           console.warn(`Brand ${brandId} has no location. Using fallback fee.`);
+           totalDeliveryFee += 1500; 
+           continue;
+        }
+
+        const distance = calculateDistance(
+           brand.location.latitude, brand.location.longitude,
+           deliveryLocation.latitude, deliveryLocation.longitude
+        );
+
+        // Use Zone base fee from the Brand's zone or Delivery Zone? 
+        // Usually, the cost depends on the trip. Let's use Delivery Zone base fee.
+        const baseFee = deliveryLocation.deliveryZone?.baseFee || 1500; // Fallback
+        const fee = calculateDeliveryFee(distance, baseFee);
+        
+        totalDeliveryFee += fee;
+     }
+  }
+
+  // 4. Calculate Order Total
+  let itemsTotal = 0;
   const orderItemsData = [];
 
   for (const item of items) {
@@ -70,7 +139,7 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     const finalUnitPrice = calculateFinalPrice(basePrice, promotions);
 
     const lineTotal = finalUnitPrice * item.quantity;
-    total += lineTotal;
+    itemsTotal += lineTotal;
 
     // Vérification stock
     if (variant) {
@@ -94,13 +163,6 @@ export async function createOrderUsecase(input: CreateOrderInput) {
             message: content.message,
             metadata: { productId: product.id, productName: product.name }
           });
-          //       await sendNotification({
-          //         userId: sellerId,
-          //         type: "LOW_STOCK",
-          //         title: "Stock faible",
-          //         message: `Le produit ${product.name} est presque épuisé.`,
-          //         metadata: { productId: product.id }
-          //       });
         }
         throw new Error(`INSUFFICIENT_STOCK_PRODUCT_${product.id}`);
       }
@@ -114,7 +176,7 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     });
   }
 
-  // On enlève le stock
+  // 5. Update Stock
   await prisma.$transaction(async (tx) => {
     for (const item of items) {
       if (item.variantId) {
@@ -131,11 +193,17 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     }
   });
 
-  // Création commande
+  // 6. Create Order
+  const finalTotalAmount = itemsTotal + totalDeliveryFee;
+
   const order = await prisma.order.create({
     data: {
       userId,
-      totalAmount: total,
+      totalAmount: finalTotalAmount,
+      deliveryFee: totalDeliveryFee,
+      deliveryMethodId: deliveryMethod.id,
+      deliveryLocationId: deliveryLocationId,
+      deliveryZoneId: deliveryZoneId,
       items: {
         create: orderItemsData
       },
@@ -150,8 +218,8 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     userId,
     type: "ORDER_CREATED",
     title: "Commande créée",
-    message: `Votre commande #${order.id} a été créée avec succès.`,
-    metadata: { orderId: order.id, totalAmount: order.totalAmount }
+    message: `Votre commande #${order.id} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
+    metadata: { orderId: order.id, totalAmount: finalTotalAmount }
   });
 
   return order;

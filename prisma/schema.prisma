@@ -81,12 +81,30 @@ model DeliveryZone {
 
   createdAt DateTime @default(now())
   Order     Order[]
+  
+  // New Relation
+  locations ReferenceLocation[]
+}
+
+model ReferenceLocation {
+  id        Int     @id @default(autoincrement())
+  name      String  // Neighborhood name (e.g. "Mermoz")
+  latitude  Float
+  longitude Float
+  city      String  @default("Dakar")
+  isActive  Boolean @default(true)
+
+  deliveryZone   DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+  deliveryZoneId Int?
+
+  brands Brand[]
+  orders Order[]
 }
 
 model DeliveryMethod {
   id       Int     @id @default(autoincrement())
   name     String // "Moto", "Pickup", "Point relais"
-  code     String  @unique
+  code     String  @unique // "STANDARD", "SELF_COLLECT"
   isActive Boolean @default(true)
 
   createdAt          DateTime             @default(now())
@@ -198,6 +216,10 @@ model Brand {
   reviewedBy     Int?        // Admin who reviewed
   rejectedReason String?
   
+  // Location
+  location      ReferenceLocation? @relation(fields: [locationId], references: [id])
+  locationId    Int?
+
   // relation propriétaire
   owner          User        @relation(fields: [ownerId], references: [id])
   ownerId        Int
@@ -276,12 +298,18 @@ model Order {
   items            OrderItem[]
   Payment          Payment[]
   deliveryFee      Float           @default(0)
+  
   deliveryZoneId   Int?
   deliveryZone     DeliveryZone?   @relation(fields: [deliveryZoneId], references: [id])
+  
   deliveryMethodId Int?
   deliveryMethod   DeliveryMethod? @relation(fields: [deliveryMethodId], references: [id])
+  
+  // New Location
+  deliveryLocation   ReferenceLocation? @relation(fields: [deliveryLocationId], references: [id])
+  deliveryLocationId Int?
 
-  shippingAddress     String? // simple pour le moment
+  shippingAddress     String? // kept for backward compatibility or extra details
   statusHistory       OrderStatusHistory[]
   feeRecord           FeeRecord[]
   deliveryAssignments DeliveryAssignment[]

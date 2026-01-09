@@ -140,6 +140,34 @@ export async function getBrandController(req: Request, res: Response) {
   }
 }
 
+export async function updateBrandController(req: Request, res: Response) {
+  try {
+    const brandId = parseInt(req.params.id);
+    const ownerId = (req as any).auth?.userId;
+    
+    if (isNaN(brandId)) return res.status(400).json({ error: "INVALID_ID" });
+
+    const updatedBrand = await import("../../../core/usecases/brands/updateBrand").then(m => 
+      m.updateBrandUsecase({
+        brandId,
+        userId: ownerId,
+        ...req.body
+      })
+    );
+
+    return res.json(updatedBrand);
+  } catch (err: any) {
+    if (err.message === "UNAUTHORIZED") {
+      return res.status(403).json({ error: "UNAUTHORIZED" });
+    }
+    if (err.message === "BRAND_NOT_FOUND") {
+      return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+    }
+    console.error("[updateBrand]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
+
 // =====================
 // EMAIL TEMPLATES
 // =====================
