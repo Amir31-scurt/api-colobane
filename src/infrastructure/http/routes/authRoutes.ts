@@ -21,6 +21,11 @@ const router = express.Router();
 
 // ... existing code ...
 
+// ... (existing routes)
+
+router.get("/me", requireAuth, meController);
+router.patch("/me", requireAuth, updateProfileController);
+
 router.post("/google", googleLoginController);
 router.post("/apple", appleLoginController);
 
