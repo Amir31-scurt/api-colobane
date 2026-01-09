@@ -55,7 +55,10 @@ export async function getOrderTrackingUsecase(orderId: number, userId: number, i
   // But usually statusHistory covers it. 
   // For the frontend sort order, it expects chronological.
   
-  return timeline;
+  return {
+      order: order,
+      timeline: timeline
+  };
 }
 
 function getStatusMessage(status: string): string {
