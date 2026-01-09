@@ -6,8 +6,11 @@ export type JwtPayload = {
   type: "access";
 };
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
-if (!JWT_SECRET) throw new Error("Missing JWT_SECRET in env");
+// Unified Secret Key Logic
+// We prioritize JWT_ACCESS_SECRET to align with tokenService.ts used by Google/Apple login
+const JWT_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || "";
+
+if (!JWT_SECRET) throw new Error("Missing JWT_ACCESS_SECRET or JWT_SECRET in env");
 
 export function signAccessToken(
     payload: Omit<JwtPayload, "type">,
