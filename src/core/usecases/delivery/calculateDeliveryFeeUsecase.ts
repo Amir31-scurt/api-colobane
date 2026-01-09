@@ -1,37 +1,71 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { calculateDistance, calculateDeliveryFee } from "../../helpers/geoUtils";
 
 interface CalculateDeliveryFeeInput {
-  orderId: number;
-  deliveryZoneId: number;
+  items: { productId: number }[];
   deliveryMethodId: number;
+  deliveryLocationId?: number;
 }
 
 export async function calculateDeliveryFeeUsecase(input: CalculateDeliveryFeeInput) {
-  const { orderId, deliveryZoneId, deliveryMethodId } = input;
+  const { items, deliveryMethodId, deliveryLocationId } = input;
 
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
-  if (!order) throw new Error("ORDER_NOT_FOUND");
+  if (!items || items.length === 0) return { fee: 0 };
 
-  const zone = await prisma.deliveryZone.findUnique({ where: { id: deliveryZoneId } });
-  if (!zone || !zone.isActive) throw new Error("ZONE_NOT_AVAILABLE");
+  const deliveryMethod = await prisma.deliveryMethod.findUnique({
+    where: { id: deliveryMethodId }
+  });
 
-  const method = await prisma.deliveryMethod.findUnique({ where: { id: deliveryMethodId } });
-  if (!method || !method.isActive) throw new Error("METHOD_NOT_AVAILABLE");
+  if (!deliveryMethod) throw new Error("INVALID_DELIVERY_METHOD");
 
-  const subtotal = order.totalAmount;
-
-  let fee = zone.baseFee;
-
-  if (zone.minAmountFree && subtotal >= zone.minAmountFree) {
-    fee = 0;
+  if (deliveryMethod.code === 'SELF_COLLECT') {
+    return { fee: 0 };
   }
 
-  // perKmFee à intégrer plus tard si tu ajoutes distance
-  // ex: fee += (distanceKm * (zone.perKmFee ?? 0));
+  // Standard Delivery
+  if (!deliveryLocationId) return { fee: 0 }; // Cannot calculate yet
 
-  return {
-    deliveryFee: fee,
-    zone,
-    method
-  };
+  const deliveryLocation = await prisma.referenceLocation.findUnique({
+    where: { id: deliveryLocationId },
+    include: { deliveryZone: true }
+  });
+
+  if (!deliveryLocation) throw new Error("INVALID_DELIVERY_LOCATION");
+
+  // Fetch products to get Brand Locations
+  const productIds = items.map(i => i.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds } },
+    include: {
+      brand: {
+        include: { location: true }
+      }
+    }
+  });
+
+  let totalDeliveryFee = 0;
+  const brandIds = new Set(products.map(p => p.brandId));
+
+  for (const brandId of brandIds) {
+    const brandProduct = products.find(p => p.brandId === brandId);
+    const brand = brandProduct?.brand;
+
+    if (!brand || !brand.location) {
+      // Fallback
+      totalDeliveryFee += 1500;
+      continue;
+    }
+
+    const distance = calculateDistance(
+      brand.location.latitude, brand.location.longitude,
+      deliveryLocation.latitude, deliveryLocation.longitude
+    );
+
+    const baseFee = deliveryLocation.deliveryZone?.baseFee || 1500;
+    const fee = calculateDeliveryFee(distance, baseFee);
+
+    totalDeliveryFee += fee;
+  }
+
+  return { fee: totalDeliveryFee };
 }

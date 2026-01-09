@@ -5,13 +5,17 @@ import {
   applyDeliveryController,
   assignDelivererController,
   updateDeliveryStatusController,
-  listDeliveryZonesController
+  listDeliveryZonesController,
+  calculateFeeController
 } from "../controllers/deliveryController";
 
 const router = express.Router();
 
 // Public: List zones
 router.get("/zones", listDeliveryZonesController);
+
+// Public (or auth optional): Calculate fee
+router.post("/calculate", calculateFeeController);
 
 // User choisit zone + méthode + adresse
 router.post("/apply", authRequired, applyDeliveryController);

@@ -67,3 +67,26 @@ export async function updateDeliveryStatusController(req: AuthRequest, res: Resp
     return res.status(500).json({ message: "Erreur maj statut livraison" });
   }
 }
+
+export async function calculateFeeController(req: Request, res: Response) {
+  try {
+    const { items, deliveryMethodId, deliveryLocationId } = req.body;
+    
+    // items must be { productId: number }[]
+    const result = await import("../../../core/usecases/delivery/calculateDeliveryFeeUsecase").then(m => 
+      m.calculateDeliveryFeeUsecase({
+        items,
+        deliveryMethodId,
+        deliveryLocationId
+      })
+    );
+
+    return res.json(result);
+  } catch (err: any) {
+    if (err.message === "INVALID_DELIVERY_LOCATION") {
+      return res.status(400).json({ error: "INVALID_DELIVERY_LOCATION" });
+    }
+    console.error(err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
