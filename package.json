@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
+    "prisma:migrate": "npm run fix:railway && prisma migrate deploy",
     "seed:delivery": "tsx src/scripts/seedDelivery.ts",
     "fix:railway": "tsx src/scripts/fixRailway.ts",
     "railway:start": "node railway-start.js"
