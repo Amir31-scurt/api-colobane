@@ -4,7 +4,6 @@ import { buildNotificationContent } from "../../factories/notificationFactory";
 import { calculateFinalPrice } from "../../helpers/calculateFinalPrice";
 import { sendNotification } from "../../services/notificationService";
 import { calculateDistance, calculateDeliveryFee } from "../../helpers/geoUtils";
-import { generateUniqueOrderNumber } from "../../helpers/orderNumberGenerator";
 
 interface OrderItemInput {
   productId: number;
@@ -196,15 +195,11 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     }
   });
 
-  // 6. Generate Unique Order Number
-  const orderNumber = await generateUniqueOrderNumber(prisma);
-
-  // 7. Create Order
+  // 6. Create Order
   const finalTotalAmount = itemsTotal + totalDeliveryFee;
 
   const order = await prisma.order.create({
     data: {
-      orderNumber,
       userId,
       totalAmount: finalTotalAmount,
       deliveryFee: totalDeliveryFee,
@@ -235,8 +230,8 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     userId,
     type: "ORDER_CREATED",
     title: "Commande créée",
-    message: `Votre commande #${order.orderNumber} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
-    metadata: { orderId: order.id, orderNumber: order.orderNumber, totalAmount: finalTotalAmount }
+    message: `Votre commande #${order.id} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
+    metadata: { orderId: order.id, totalAmount: finalTotalAmount }
   });
 
   return order;
