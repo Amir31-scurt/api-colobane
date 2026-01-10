@@ -1,5 +1,6 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import { calculateFinalPrice } from "../../helpers/calculateFinalPrice";
+import { generateUniqueOrderNumber } from "../../helpers/orderNumberGenerator";
 
 interface OrderItemInput {
   productId: number;
@@ -61,8 +62,12 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     };
   });
 
+  // Generate unique order number
+  const orderNumber = await generateUniqueOrderNumber(prisma);
+
   const order = await prisma.order.create({
     data: {
+      orderNumber,
       userId,
       totalAmount: total,
       items: {

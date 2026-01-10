@@ -1,49 +1,48 @@
+import { PrismaClient } from "@prisma/client";
+import { format } from "date-fns";
+
 /**
- * Generates a secure, unique order number
+ * Generates a semantic order number
  * Format: CLB-YYYYMMDD-XXXXXX
- * Example: CLB-20260109-A7B2C9
+ * Example: CLB-20240115-A7B2C9
  */
 export function generateOrderNumber(): string {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const prefix = "CLB";
+  const dateStr = format(new Date(), "yyyyMMdd");
   
-  // Generate 6-character random alphanumeric string
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let randomPart = '';
-  for (let i = 0; i < 6; i++) {
-    randomPart += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  
-  return `CLB-${year}${month}${day}-${randomPart}`;
+  // Generate 6 random alphanumeric characters
+  const randomChars = Math.random()
+    .toString(36)
+    .substring(2, 8)
+    .toUpperCase();
+
+  return `${prefix}-${dateStr}-${randomChars}`;
 }
 
 /**
- * Ensures the generated order number is unique in the database
+ * Generates a guaranteed unique order number
  */
-export async function generateUniqueOrderNumber(prisma: any): Promise<string> {
-  let orderNumber: string;
+export async function generateUniqueOrderNumber(prisma: PrismaClient): Promise<string> {
   let isUnique = false;
+  let orderNumber = "";
   let attempts = 0;
-  const maxAttempts = 10;
 
-  while (!isUnique && attempts < maxAttempts) {
+  while (!isUnique && attempts < 10) {
     orderNumber = generateOrderNumber();
     
-    // Check if this order number already exists
-    const existing = await prisma.order.findUnique({
-      where: { orderNumber }
+    const existingOrder = await prisma.order.findUnique({
+      where: { orderNumber },
     });
-    
-    if (!existing) {
+
+    if (!existingOrder) {
       isUnique = true;
-      return orderNumber;
     }
-    
     attempts++;
   }
-  
-  // Fallback: add timestamp to ensure uniqueness
-  return `CLB-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+  if (!isUnique) {
+    throw new Error("Failed to generate unique order number after 10 attempts");
+  }
+
+  return orderNumber;
 }

@@ -2,59 +2,54 @@ import { prisma } from '../infrastructure/prisma/prismaClient';
 import { generateOrderNumber } from '../core/helpers/orderNumberGenerator';
 
 async function backfillOrderNumbers() {
-  console.log('Starting to backfill order numbers for existing orders...');
+  console.log('🔄 Starting order number backfill...');
 
-  // Get all orders without orderNumber
-  const orders = await prisma.$queryRaw<Array<{ id: number }>>`
-    SELECT id FROM "Order" WHERE "orderNumber" IS NULL
-  `;
+  // 1. Find orders without an order number
+  const orders = await prisma.order.findMany({
+    where: {
+      orderNumber: null
+    },
+    select: {
+      id: true
+    }
+  });
 
-  console.log(`Found ${orders.length} orders without orderNumber`);
+  console.log(`Found ${orders.length} orders to update.`);
 
+  // 2. Update each order with a unique number
+  let updated = 0;
   for (const order of orders) {
     let orderNumber: string;
     let isUnique = false;
     let attempts = 0;
 
-    // Generate a unique order number
     while (!isUnique && attempts < 10) {
       orderNumber = generateOrderNumber();
-      
-      const existing = await prisma.$queryRaw<Array<{ count: bigint }>>`
-        SELECT COUNT(*) as count FROM "Order" WHERE "orderNumber" = ${orderNumber}
-      `;
-
-      if (Number(existing[0].count) === 0) {
+      const existing = await prisma.order.findUnique({
+        where: { orderNumber }
+      });
+      if (!existing) {
         isUnique = true;
-        
-        // Update the order with the new orderNumber
-        await prisma.$executeRaw`
-          UPDATE "Order" SET "orderNumber" = ${orderNumber} WHERE id = ${order.id}
-        `;
-        
-        console.log(`✓ Updated order ${order.id} with orderNumber: ${orderNumber}`);
-        break;
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { orderNumber }
+        });
+        updated++;
       }
-      
       attempts++;
     }
-
+    
     if (!isUnique) {
-      // Fallback with timestamp
-      const fallbackNumber = `CLB-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      await prisma.$executeRaw`
-        UPDATE "Order" SET "orderNumber" = ${fallbackNumber} WHERE id = ${order.id}
-      `;
-      console.log(`✓ Updated order ${order.id} with fallback orderNumber: ${fallbackNumber}`);
+      console.warn(`Could not generate unique number for order ${order.id}`);
     }
   }
 
-  console.log('✅ Backfill completed!');
+  console.log(`✅ Backfill complete. Updated ${updated} orders.`);
   await prisma.$disconnect();
 }
 
 backfillOrderNumbers()
-  .catch((error) => {
-    console.error('Error during backfill:', error);
+  .catch((e) => {
+    console.error('Error backfilling:', e);
     process.exit(1);
   });
