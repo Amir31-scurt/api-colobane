@@ -24,7 +24,7 @@ export function generateOrderNumber(): string {
  */
 export async function generateUniqueOrderNumber(prisma: PrismaClient): Promise<string> {
   let isUnique = false;
-  let orderNumber = "";
+  let orderNumber = ""; 
   let attempts = 0;
 
   while (!isUnique && attempts < 10) {
