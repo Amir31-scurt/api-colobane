@@ -22,8 +22,10 @@ async function backfillOrderNumbers() {
     `;
     
     if (columns.length === 0) {
-      console.log('⚠️ Column orderNumber does not exist yet. Migration might have failed or not run.');
-      return;
+      console.log('⚠️ Column orderNumber does not exist. CREATING IT NOW via Raw SQL...');
+      await prisma.$executeRaw`ALTER TABLE "Order" ADD COLUMN "orderNumber" TEXT;`;
+      await prisma.$executeRaw`CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");`;
+      console.log('✅ Column and Index created successfully.');
     }
 
     // 2. Find orders without an order number (using Raw SQL to avoid type errors)
