@@ -7,7 +7,7 @@
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "workers": "tsx src/workers.ts",
     "build": "tsc",
-    "start": "node railway-start.js",
+    "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "npm run fix:railway && prisma migrate deploy && tsx src/scripts/backfillOrderNumbers.ts",
     "seed:delivery": "tsx src/scripts/seedDelivery.ts",
