@@ -1,25 +1,41 @@
 // src/core/usecases/orders/getOrderTrackingUsecase
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
-export async function getOrderTrackingUsecase(orderId: number, userId: number, isSeller: boolean, isAdmin: boolean) {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      user: true,
-      items: {
-        include: {
-          product: true,
-          variant: true
-        }
-      },
-      deliveryMethod: true,
-      deliveryLocation: true,
-      Payment: true,
-      statusHistory: {
-        orderBy: { createdAt: "asc" }
+export async function getOrderTrackingUsecase(orderIdentifier: string | number, userId: number, isSeller: boolean, isAdmin: boolean) {
+  let order;
+  
+  // Try to parse as integer ID first if it looks like one
+  const numericId = Number(orderIdentifier);
+  const isNumeric = !isNaN(numericId);
+
+  if (isNumeric) {
+     order = await prisma.order.findUnique({
+      where: { id: numericId },
+      include: {
+        user: true,
+        items: { include: { product: true, variant: true } },
+        deliveryMethod: true,
+        deliveryLocation: true,
+        Payment: true,
+        statusHistory: { orderBy: { createdAt: "asc" } }
       }
-    }
-  });
+    });
+  }
+
+  // If not found by ID or wasn't numeric, try finding by orderNumber
+  if (!order) {
+    order = await prisma.order.findUnique({
+      where: { orderNumber: String(orderIdentifier) },
+      include: {
+        user: true,
+        items: { include: { product: true, variant: true } },
+        deliveryMethod: true,
+        deliveryLocation: true,
+        Payment: true,
+        statusHistory: { orderBy: { createdAt: "asc" } }
+      }
+    });
+  }
 
   if (!order) {
     throw new Error("ORDER_NOT_FOUND");

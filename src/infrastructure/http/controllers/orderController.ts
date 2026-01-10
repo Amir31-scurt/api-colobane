@@ -63,12 +63,12 @@ export async function updateOrderStatusController(req: AuthRequest, res: Respons
 
 export async function getOrderTrackingController(req: AuthRequest, res: Response) {
   try {
-    const orderId = Number(req.params.orderId);
+    const orderIdentifier = req.params.orderId;
     const isSeller = req.user!.role === "SELLER" || req.user!.role === "ADMIN";
     const isAdmin = req.user!.role === "ADMIN";
 
     const order = await getOrderTrackingUsecase(
-      orderId,
+      orderIdentifier,
       req.user!.id,
       isSeller,
       isAdmin
