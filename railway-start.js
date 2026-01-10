@@ -5,7 +5,7 @@
  * This runs BEFORE the server starts, when the database is available
  */
 
-import { execSync } from 'child_process';
+const { execSync } = require('child_process');
 
 console.log('🚂 Railway Startup Process...');
 
