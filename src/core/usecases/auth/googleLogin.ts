@@ -1,5 +1,5 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
-import { createAccessToken } from "../../services/tokenService";
+import { createAccessToken, createRefreshToken } from "../../services/tokenService";
 import axios from "axios";
 
 interface GoogleLoginInput {
@@ -96,13 +96,26 @@ export async function googleLogin(input: GoogleLoginInput) {
     });
   }
 
-  // 5. Generate Token
-  // 5. Generate Token
-  const token = createAccessToken({
+  // 5. Generate Tokens
+  const tokenPayload = {
       id: user.id,
       email: user.email!,
       role: user.role,
       phone: user.phone
+  };
+
+  const token = createAccessToken(tokenPayload);
+  const refreshToken = createRefreshToken(tokenPayload);
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt
+    }
   });
 
   return {
@@ -115,6 +128,7 @@ export async function googleLogin(input: GoogleLoginInput) {
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl
     },
-    token
+    token,
+    refreshToken
   };
 }

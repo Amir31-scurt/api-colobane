@@ -1,5 +1,5 @@
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
-import { createAccessToken } from "../../services/tokenService";
+import { createAccessToken, createRefreshToken } from "../../services/tokenService";
 import jwt from "jsonwebtoken";
 
 interface AppleLoginInput {
@@ -69,13 +69,26 @@ export async function appleLogin(input: AppleLoginInput) {
     }
   }
 
-  // 4. Generate Token (Session token for our app)
-  // 4. Generate Token (Session token for our app)
-  const token = createAccessToken({
+  // 4. Generate Tokens
+  const tokenPayload = {
       id: user.id,
       email: user.email!,
       role: user.role,
       phone: user.phone
+  };
+
+  const token = createAccessToken(tokenPayload);
+  const refreshToken = createRefreshToken(tokenPayload);
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt
+    }
   });
 
   return {
@@ -88,6 +101,7 @@ export async function appleLogin(input: AppleLoginInput) {
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl
     },
-    token
+    token,
+    refreshToken
   };
 }
