@@ -25,6 +25,7 @@ const router = express.Router();
 
 router.get("/me", requireAuth, meController);
 router.patch("/me", requireAuth, updateProfileController);
+router.post("/refresh-token", refreshTokenController);
 
 router.post("/google", googleLoginController);
 router.post("/apple", appleLoginController);

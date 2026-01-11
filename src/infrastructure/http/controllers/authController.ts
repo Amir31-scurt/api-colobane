@@ -55,12 +55,13 @@ export async function registerController(req: Request, res: Response) {
 export async function loginController(req: Request, res: Response) {
   try {
     const { email, password } = req.body;
-    const { user, token } = await loginUser({ email, password });
+    const { user, token, refreshToken } = await loginUser({ email, password });
 
     return res.json({
       message: "Connexion réussie",
       user,
-      token
+      token,
+      refreshToken
     });
   } catch (err: any) {
     if (err.message === "INVALID_CREDENTIALS") {

@@ -1,7 +1,6 @@
-// src/core/usecases/auth/loginUser
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
 import bcrypt from "bcryptjs";
-import { createAccessToken } from "../../services/tokenService";
+import { createAccessToken, createRefreshToken } from "../../services/tokenService";
 
 interface LoginInput {
   email: string;
@@ -36,6 +35,24 @@ export async function loginUser(input: LoginInput) {
       phone: user.phone
   });
 
+  const refreshToken = createRefreshToken({
+      id: user.id,
+      email: user.email!,
+      role: user.role,
+      phone: user.phone
+  });
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt
+    }
+  });
+
   return {
     user: {
       id: user.id,
@@ -45,7 +62,7 @@ export async function loginUser(input: LoginInput) {
       phone: user.phone,
       createdAt: user.createdAt
     },
-    token
+    token,
+    refreshToken
   };
 }
-
