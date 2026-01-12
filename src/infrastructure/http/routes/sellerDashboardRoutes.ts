@@ -9,6 +9,8 @@ import {
     sellerUpdateProductController,
     sellerGetProductController,
     sellerListOrdersController,
+    sellerGetOrderController,
+    sellerUpdateOrderStatusController,
     sellerUpdateBrandController,
     sellerGetBrandController,
     sellerDeleteProductController,
@@ -19,7 +21,7 @@ import {
     sellerTogglePromotionController,
     sellerAssignPromotionToProductsController
 } from "../controllers/seller/sellerDashboardController";
-import { getSellerFinances } from "../controllers/seller/sellerFinancesController";
+import { getSellerFinances, requestPayout } from "../controllers/seller/sellerFinancesController";
 
 const router = express.Router();
 
@@ -117,6 +119,41 @@ router.get("/orders", requireAuth, requireRole("SELLER", "ADMIN"), sellerListOrd
 
 /**
  * @swagger
+ * /api/seller/orders/{id}:
+ *   get:
+ *     summary: Récupère les détails d'une commande
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Détails de la commande
+ */
+router.get("/orders/:id", requireAuth, requireRole("SELLER", "ADMIN"), sellerGetOrderController);
+
+/**
+ * @swagger
+ * /api/seller/orders/{id}/status:
+ *   patch:
+ *     summary: Met à jour le statut d'une commande
+ *     tags: [Seller Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status: { type: string }
+ *     responses:
+ *       200:
+ *         description: Statut mis à jour
+ */
+router.patch("/orders/:id/status", requireAuth, requireRole("SELLER", "ADMIN"), sellerUpdateOrderStatusController);
+
+/**
+ * @swagger
  * /api/seller/finances:
  *   get:
  *     summary: Détails financiers du vendeur (revenu, balance, historique payout)
@@ -128,6 +165,7 @@ router.get("/orders", requireAuth, requireRole("SELLER", "ADMIN"), sellerListOrd
  *         description: État financier du vendeur
  */
 router.get("/finances", requireAuth, requireRole("SELLER", "ADMIN"), getSellerFinances);
+router.post("/finances/request-payout", requireAuth, requireRole("SELLER"), requestPayout);
 
 /**
  * @swagger

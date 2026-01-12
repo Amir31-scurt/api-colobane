@@ -166,6 +166,19 @@ export async function createOrderUsecase(input: CreateOrderInput) {
             message: content.message,
             metadata: { productId: product.id, productName: product.name }
           });
+
+          // Notify Admins about low stock
+          try {
+             const { broadcastToAdmins } = await import("../../services/notificationService");
+             await broadcastToAdmins(
+                NotificationType.LOW_STOCK,
+                "Stock Critique",
+                `Le produit "${product.name}" (ID: ${product.id}) est presque épuisé (${product.stock} restants).`,
+                { productId: product.id, productName: product.name, currentStock: product.stock }
+             );
+          } catch (err) {
+              console.error("Failed to notify admins of low stock:", err);
+          }
         }
         throw new Error(`INSUFFICIENT_STOCK_PRODUCT_${product.id}`);
       }
@@ -238,6 +251,19 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     message: `Votre commande #${orderNumber} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
     metadata: { orderId: order.id, orderNumber, totalAmount: finalTotalAmount }
   });
+
+  // Notify Admins
+  try {
+     const { broadcastToAdmins } = await import("../../services/notificationService");
+     await broadcastToAdmins(
+        NotificationType.ORDER_CREATED,
+        "Nouvelle Commande",
+        `Nouvelle commande #${orderNumber} d'un montant de ${finalTotalAmount} FCFA.`,
+        { orderId: order.id, orderNumber, amount: finalTotalAmount }
+     );
+  } catch (err) {
+      console.error("Failed to notify admins of new order:", err);
+  }
 
   return order;
 }

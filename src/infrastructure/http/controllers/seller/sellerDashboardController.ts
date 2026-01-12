@@ -141,6 +141,44 @@ export async function sellerDeleteProductController(req: Request, res: Response)
     }
 }
 
+export async function sellerGetOrderController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const orderId = Number(req.params.id);
+        
+        // Dynamic import to avoid circular dependencies if any
+        const { sellerGetOrderUsecase } = await import("../../../../core/usecases/seller/sellerGetOrderUsecase");
+        const order = await sellerGetOrderUsecase(userId, orderId);
+        
+        return res.json(order);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "ORDER_NOT_FOUND") return res.status(404).json({ error: "NOT_FOUND" });
+        if (e.message === "FORBIDDEN_ACCESS") return res.status(403).json({ error: "FORBIDDEN" });
+        if (e.message === "NO_BRAND_FOUND") return res.status(400).json({ error: "NO_BRAND" });
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
+export async function sellerUpdateOrderStatusController(req: Request, res: Response) {
+    try {
+        const userId = req.auth!.userId;
+        const orderId = Number(req.params.id);
+        const { status } = req.body;
+
+        const { sellerUpdateOrderStatusUsecase } = await import("../../../../core/usecases/seller/sellerUpdateOrderStatusUsecase");
+        const order = await sellerUpdateOrderStatusUsecase(userId, orderId, status);
+        
+        return res.json(order);
+    } catch (e: any) {
+        console.error(e);
+        if (e.message === "ORDER_NOT_FOUND") return res.status(404).json({ error: "NOT_FOUND" });
+        if (e.message === "FORBIDDEN_ACCESS") return res.status(403).json({ error: "FORBIDDEN" });
+        if (e.message === "INVALID_STATUS") return res.status(400).json({ error: "INVALID_STATUS" });
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
 // ==================== PROMOTIONS ====================
 
 export async function sellerCreatePromotionController(req: Request, res: Response) {
