@@ -171,7 +171,7 @@ export function orderDeliveredEmail(data: OrderEmailData): { subject: string; ht
       content,
       ctaButton: {
         text: 'Découvrir nos produits',
-        url: 'https://colobane.com/products'
+        url: 'https://www.mycolobane.com/products'
       }
     })
   };
@@ -209,7 +209,7 @@ export function orderCancelledEmail(data: OrderEmailData & { reason?: string }):
       content,
       ctaButton: {
         text: 'Nous contacter',
-        url: 'https://colobane.com/contact'
+        url: 'https://www.mycolobane.com/contact'
       }
     })
   };

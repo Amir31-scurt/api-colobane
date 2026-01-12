@@ -7,7 +7,7 @@ import {
 } from './orderEmailTemplates';
 
 export const getEmailTemplate = (type: string, data: any) => {
-  const trackingUrl = data.orderId ? `${process.env.CLIENT_URL || 'http://localhost:3000'}/orders/${data.orderId}` : undefined;
+  const trackingUrl = data.orderId ? `${process.env.CLIENT_URL || 'https://www.mycolobane.com'}/orders/${data.orderId}` : undefined;
 
   switch (type) {
     case "ORDER_CREATED":
