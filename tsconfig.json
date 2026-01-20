@@ -3,15 +3,16 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "node",
+
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
   },
-  "include": [
-    "src/**/*.ts"
-  ]
+  "include": ["src", "prisma"]
 }
