@@ -2,7 +2,7 @@ services:
   - type: web
     name: colobane-api
     env: node
-    buildCommand: npm ci && npm run build
+    buildCommand: export NODE_ENV=development && npm ci && npm run build
     startCommand: export NODE_ENV=production && npm run prisma:migrate && npm start
     envVars:
       - key: DATABASE_URL
