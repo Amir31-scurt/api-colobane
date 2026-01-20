@@ -2,16 +2,17 @@
   "name": "api-colobane",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "workers": "tsx src/workers.ts",
-    "build": "tsc",
+    "build": "npx prisma generate && tsc && echo 'Build complete. Contents:' && ls -la dist",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "npm run fix:railway && prisma migrate deploy && tsx src/scripts/backfillOrderNumbers.ts",
-    "seed:delivery": "tsx src/scripts/seedDelivery.ts",
-    "fix:railway": "tsx src/scripts/fixRailway.ts",
+    "prisma:migrate": "prisma migrate deploy",
     "railway:start": "node railway-start.js"
   },
   "prisma": {
