@@ -2,7 +2,11 @@
   "name": "api-colobane",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/src/server.ts",
+  "main": "dist/src/server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "workers": "tsx src/workers.ts",
