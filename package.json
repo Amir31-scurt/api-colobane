@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "workers": "tsx src/workers.ts",
-    "build": "rm -rf dist && npx prisma generate && tsc && echo '✅ Build finished. Checking dist:' && ls -la dist || echo '❌ Build failed or empty dist'",
-    "start": "node dist/server.js",
+    "build": "rm -rf dist && npx prisma generate && tsc && echo '✅ Build finished. Checking dist:' && ls -R dist || echo '❌ Build failed or empty dist'",
+    "start": "node dist/src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "railway:start": "node railway-start.js"
