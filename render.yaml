@@ -3,14 +3,12 @@ services:
     name: colobane-api
     env: node
     buildCommand: npm install && npm run build
-    startCommand: npm run prisma:migrate && npm start
+    startCommand: export NODE_ENV=production && npm run prisma:migrate && npm start
     envVars:
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
         sync: false
-      - key: NODE_ENV
-        value: production
       - key: JWT_SECRET
         sync: false
       - key: ACCESS_TOKEN_SECRET
