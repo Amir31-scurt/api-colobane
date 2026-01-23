@@ -19,13 +19,14 @@ export async function googleLogin(input: GoogleLoginInput) {
   let googleUser: GoogleUser;
   try {
     // Try as ID Token first
-    const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`);
+    const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`, { timeout: 10000 });
     googleUser = response.data;
   } catch (error) {
     try {
         // Try as Access Token (UserInfo endpoint)
         const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-            headers: { Authorization: `Bearer ${input.token}` }
+            headers: { Authorization: `Bearer ${input.token}` },
+            timeout: 10000
         });
         googleUser = response.data;
     } catch (err2: any) {
