@@ -60,7 +60,7 @@ export async function loginController(req: Request, res: Response) {
     return res.json({
       message: "Connexion réussie",
       user,
-      accessToken: token,
+      token,
       refreshToken
     });
   } catch (err: any) {
@@ -219,12 +219,10 @@ export async function googleLoginController(req: Request, res: Response) {
     const { token, phone } = req.body;
     if (!token) return res.status(400).json({ message: "Token requis" });
 
-    const { user, token: accessToken, refreshToken } = await googleLogin({ token, phone });
+    const result = await googleLogin({ token, phone });
     return res.json({
       message: "Connexion Google réussie",
-      user,
-      accessToken,
-      refreshToken
+      ...result
     });
   } catch (err: any) {
     console.error("Google Login Error:", err);
@@ -251,12 +249,10 @@ export async function appleLoginController(req: Request, res: Response) {
     const { token, phone, name } = req.body;
     if (!token) return res.status(400).json({ message: "Token requis" });
 
-    const { user, token: accessToken, refreshToken } = await appleLogin({ token, phone, name });
+    const result = await appleLogin({ token, phone, name });
     return res.json({
       message: "Connexion Apple réussie",
-      user,
-      accessToken,
-      refreshToken
+      ...result
     });
   } catch (err: any) {
     console.error("Apple Login Error:", err);
