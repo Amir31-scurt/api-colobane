@@ -19,10 +19,28 @@ import { requireAuth } from "../middlewares/auth/requireAuth";
 
 const router = express.Router();
 
-// ... existing code ...
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: Gestion de l'authentification (Register, Login, OTP, etc.)
+ */
 
-// ... (existing routes)
+// Inscription classique (email/pass)
+router.post("/register", registerController);
 
+// Connexion classique (email/pass)
+router.post("/login", loginController);
+
+// Réinitialisation de mot de passe
+router.post("/forgot-password", requestPasswordResetController);
+router.post("/reset-password", resetPasswordController);
+
+// OTP (pour app mobile sans email/pass ou 2FA)
+router.post("/otp/request", requestOtpController);
+router.post("/otp/verify", verifyOtpController);
+
+// Profile
 router.get("/me", requireAuth, meController);
 router.patch("/me", requireAuth, updateProfileController);
 router.post("/refresh-token", refreshTokenController);
