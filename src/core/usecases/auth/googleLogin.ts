@@ -15,51 +15,27 @@ interface GoogleUser {
 }
 
 export async function googleLogin(input: GoogleLoginInput) {
-  console.log("🔵 [googleLogin] Start with token length:", input.token?.length);
-
-    // 1. Verify token with Google
-    let googleUser: GoogleUser;
-    const isAccessToken = input.token.startsWith("ya29.");
-    
-    if (isAccessToken) {
-        console.log("🔵 [googleLogin] Detected Access Token (starts with ya29), verifying via UserInfo...");
-        try {
-            const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-                headers: { Authorization: `Bearer ${input.token}` },
-                timeout: 5000
-            });
-            googleUser = response.data;
-            console.log("🟢 [googleLogin] Access Token verified");
-        } catch (err: any) {
-             console.error("🔴 [googleLogin] Access Token verification failed:", err.response?.data || err.message);
-             // Fail fast if it looked like an access token but failed
-             throw new Error("INVALID_GOOGLE_TOKEN");
-        }
-    } else {
-        // Assume ID Token or other format
-        try {
-            console.log("🔵 [googleLogin] Verifying as ID Token...");
-            const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`, { timeout: 5000 });
-            googleUser = response.data;
-            console.log("🟢 [googleLogin] ID Token verified");
-        } catch (error) {
-            console.log("🟡 [googleLogin] ID Token failed, trying Access Token as fallback...");
-            try {
-                const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-                    headers: { Authorization: `Bearer ${input.token}` },
-                    timeout: 5000
-                });
-                googleUser = response.data;
-                console.log("🟢 [googleLogin] Access Token verified (fallback)");
-            } catch (err2: any) {
-                console.error("🔴 [googleLogin] Token verification failed:", err2.response?.data || err2.message);
-                throw new Error("INVALID_GOOGLE_TOKEN");
-            }
-        }
+  // 1. Verify token with Google
+  let googleUser: GoogleUser;
+  try {
+    // Try as ID Token first
+    const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`);
+    googleUser = response.data;
+  } catch (error) {
+    try {
+        // Try as Access Token (UserInfo endpoint)
+        const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+            headers: { Authorization: `Bearer ${input.token}` }
+        });
+        googleUser = response.data;
+    } catch (err2: any) {
+        console.error("Google verify error:", err2.response?.data || err2.message);
+        console.log("Token received:", input.token);
+        throw new Error("INVALID_GOOGLE_TOKEN");
     }
+  }
 
   const { sub: googleId, email, name, picture } = googleUser;
-  console.log("🔵 [googleLogin] Google User:", { email, googleId, name });
 
   if (!email) {
     throw new Error("GOOGLE_ACCOUNT_NO_EMAIL");
@@ -72,21 +48,20 @@ export async function googleLogin(input: GoogleLoginInput) {
 
   // 3. If not found, find by email
   if (!user) {
-    console.log("🔵 [googleLogin] User not found by googleId, checking email...");
     user = await prisma.user.findUnique({
       where: { email }
     });
 
     if (user) {
-      console.log("🟢 [googleLogin] User found by email, linking account...");
+      // Link account
       user = await prisma.user.update({
         where: { id: user.id },
         data: { googleId }
       });
     } else {
-      console.log("🔵 [googleLogin] Creating new user...");
       // User doesn't exist, create new
       if (!input.phone) {
+        // This error will be caught by the controller and sent as 422 with code PHONE_REQUIRED
         throw new Error("PHONE_REQUIRED");
       }
 
@@ -110,7 +85,6 @@ export async function googleLogin(input: GoogleLoginInput) {
           phone: input.phone
         }
       });
-      console.log("🟢 [googleLogin] New user created:", user.id);
     }
   }
 
@@ -123,7 +97,6 @@ export async function googleLogin(input: GoogleLoginInput) {
   }
 
   // 5. Generate Tokens
-  console.log("🔵 [googleLogin] Generating tokens for user:", user.id);
   const tokenPayload = {
       id: user.id,
       email: user.email!,
@@ -133,7 +106,6 @@ export async function googleLogin(input: GoogleLoginInput) {
 
   const token = createAccessToken(tokenPayload);
   const refreshToken = createRefreshToken(tokenPayload);
-  console.log("🟢 [googleLogin] Tokens generated");
 
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
@@ -156,7 +128,7 @@ export async function googleLogin(input: GoogleLoginInput) {
       createdAt: user.createdAt,
       avatarUrl: user.avatarUrl
     },
-    token, // This will be renamed to accessToken by the controller
+    token,
     refreshToken
   };
 }
