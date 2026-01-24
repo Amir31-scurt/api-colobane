@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "../../../../core/services/tokenService";
+import { verifyAccessToken } from "../../../../core/security/jwt";
 
 declare global {
   namespace Express {
@@ -23,15 +23,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     }
 
     const payload = verifyAccessToken(token);
-    // tokenService returns { id, email, role, phone ... }
-    // requireAuth expects payload to have 'sub' ??
-    // Actually tokenService.createAccessToken puts 'sub: String(payload.id)'
-    // BUT verifyAccessToken returns "JwtPayload" interface which is { id, email, role... } + whatever jwt.verify returns
-    // jwt.verify returns the full decoded object.
-    
-    // Let's safe cast. tokenService defines interface JwtPayload { id, email, role, phone }
-    
-    req.auth = { userId: payload.id, role: payload.role as "USER" | "SELLER" | "ADMIN" };
+    req.auth = { userId: Number(payload.sub), role: payload.role };
 
     return next();
   } catch (error: any) {

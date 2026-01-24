@@ -99,6 +99,10 @@ app.use("/api/public", publicRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/contact", contactRoutes);
 
+// Debug Route (Temporary)
+import debugRoutes from "./infrastructure/http/routes/debugRoutes";
+app.use("/api/debug", debugRoutes);
+
 // Documentation
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
