@@ -15,10 +15,13 @@ const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
 
 if (!JWT_ACCESS_SECRET || !JWT_REFRESH_SECRET) {
-  console.warn("⚠️ JWT secrets manquants dans les variables d'environnement.");
+  console.error("🔴 [tokenService] JWT secrets manquants ! Vérifiez JWT_ACCESS_SECRET et JWT_REFRESH_SECRET dans le .env ou le dashboard Render.");
+  // Ne pas jeter d'erreur au top-level pour éviter le crash au démarrage, mais dans les fonctions.
 }
 
 export function createAccessToken(payload: JwtPayload): string {
+  if (!JWT_ACCESS_SECRET) throw new Error("JWT_SECRETS_MISSING");
+  
   return jwt.sign({ 
     ...payload, 
     sub: String(payload.id),
@@ -29,6 +32,8 @@ export function createAccessToken(payload: JwtPayload): string {
 }
 
 export function createRefreshToken(payload: JwtPayload): string {
+  if (!JWT_REFRESH_SECRET) throw new Error("JWT_SECRETS_MISSING");
+
   return jwt.sign(payload, JWT_REFRESH_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRES_IN
   });

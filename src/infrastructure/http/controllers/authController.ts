@@ -216,16 +216,24 @@ import { googleLogin } from "../../../core/usecases/auth/googleLogin";
 
 export async function googleLoginController(req: Request, res: Response) {
   try {
+    console.log("🔵 [googleLoginController] Request received");
     const { token, phone } = req.body;
-    if (!token) return res.status(400).json({ message: "Token requis" });
+    
+    if (!token) {
+      console.warn("🟠 [googleLoginController] Missing token in body");
+      return res.status(400).json({ message: "Token requis" });
+    }
 
+    console.log("🔵 [googleLoginController] calling googleLogin usecase...");
     const result = await googleLogin({ token, phone });
+    console.log("🟢 [googleLoginController] Success");
+
     return res.json({
       message: "Connexion Google réussie",
       ...result
     });
   } catch (err: any) {
-    console.error("Google Login Error:", err);
+    console.error("🔴 [googleLoginController] Error caught:", err);
     if (err.message === "INVALID_GOOGLE_TOKEN") {
       return res.status(401).json({ message: "Token Google invalide" });
     }
