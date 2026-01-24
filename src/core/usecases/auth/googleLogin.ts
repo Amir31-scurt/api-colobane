@@ -17,29 +17,46 @@ interface GoogleUser {
 export async function googleLogin(input: GoogleLoginInput) {
   console.log("🔵 [googleLogin] Start with token length:", input.token?.length);
 
-  // 1. Verify token with Google
-  let googleUser: GoogleUser;
-  try {
-    // Try as ID Token first
-    console.log("🔵 [googleLogin] Verifying as ID Token...");
-    const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`, { timeout: 10000 });
-    googleUser = response.data;
-    console.log("🟢 [googleLogin] ID Token verified");
-  } catch (error) {
-    console.log("🟡 [googleLogin] ID Token failed, trying Access Token...");
-    try {
-        // Try as Access Token (UserInfo endpoint)
-        const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-            headers: { Authorization: `Bearer ${input.token}` },
-            timeout: 10000
-        });
-        googleUser = response.data;
-        console.log("🟢 [googleLogin] Access Token verified");
-    } catch (err2: any) {
-        console.error("🔴 [googleLogin] Token verification failed:", err2.response?.data || err2.message);
-        throw new Error("INVALID_GOOGLE_TOKEN");
+    // 1. Verify token with Google
+    let googleUser: GoogleUser;
+    const isAccessToken = input.token.startsWith("ya29.");
+    
+    if (isAccessToken) {
+        console.log("🔵 [googleLogin] Detected Access Token (starts with ya29), verifying via UserInfo...");
+        try {
+            const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+                headers: { Authorization: `Bearer ${input.token}` },
+                timeout: 5000
+            });
+            googleUser = response.data;
+            console.log("🟢 [googleLogin] Access Token verified");
+        } catch (err: any) {
+             console.error("🔴 [googleLogin] Access Token verification failed:", err.response?.data || err.message);
+             // Fail fast if it looked like an access token but failed
+             throw new Error("INVALID_GOOGLE_TOKEN");
+        }
+    } else {
+        // Assume ID Token or other format
+        try {
+            console.log("🔵 [googleLogin] Verifying as ID Token...");
+            const response = await axios.get<GoogleUser>(`https://oauth2.googleapis.com/tokeninfo?id_token=${input.token}`, { timeout: 5000 });
+            googleUser = response.data;
+            console.log("🟢 [googleLogin] ID Token verified");
+        } catch (error) {
+            console.log("🟡 [googleLogin] ID Token failed, trying Access Token as fallback...");
+            try {
+                const response = await axios.get<GoogleUser>(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+                    headers: { Authorization: `Bearer ${input.token}` },
+                    timeout: 5000
+                });
+                googleUser = response.data;
+                console.log("🟢 [googleLogin] Access Token verified (fallback)");
+            } catch (err2: any) {
+                console.error("🔴 [googleLogin] Token verification failed:", err2.response?.data || err2.message);
+                throw new Error("INVALID_GOOGLE_TOKEN");
+            }
+        }
     }
-  }
 
   const { sub: googleId, email, name, picture } = googleUser;
   console.log("🔵 [googleLogin] Google User:", { email, googleId, name });
