@@ -1,15 +1,13 @@
-import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { verifyAccessToken } from "../../../core/services/tokenService";
 
 dotenv.config();
 
-// L’interface DOIT être exportée correctement
-export interface AuthRequest extends Request {
-  user?: { id: number; email: string; role: string, phone: string };
-}
+// Type alias for backward compatibility
+// Properties are now defined in src/types/express.d.ts via module augmentation
+export type AuthRequest = Request;
 
 // Middleware d'authentification
 export function authRequired(req: AuthRequest, res: Response, next: NextFunction) {

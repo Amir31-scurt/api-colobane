@@ -21,4 +21,22 @@ router.get("/config", (req, res) => {
   });
 });
 
+router.get("/auth-headers", (req, res) => {
+  const authHeader = req.headers.authorization || "";
+  const [scheme, token] = authHeader.split(" ");
+  
+  res.json({
+    status: "ok",
+    message: "Auth Debug",
+    data: {
+      hasAuthHeader: !!req.headers.authorization,
+      scheme: scheme || "none",
+      tokenPresent: !!token,
+      tokenPrefix: token ? token.substring(0, 20) + "..." : "none",
+      cookies: req.headers.cookie || "none",
+      allHeaders: Object.keys(req.headers)
+    }
+  });
+});
+
 export default router;
