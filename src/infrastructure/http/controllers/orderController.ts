@@ -30,13 +30,31 @@ export async function createOrderController(req: AuthRequest, res: Response) {
 }
 
 export async function listUserOrdersController(req: AuthRequest, res: Response) {
-  const orders = await listUserOrdersUsecase(req.user!.id);
-  return res.json(orders);
+  try {
+    const orders = await listUserOrdersUsecase(req.user!.id);
+    return res.json(orders);
+  } catch (err: any) {
+    console.error('Error fetching user orders:', err);
+    return res.status(500).json({ 
+      status: 'error',
+      message: 'Une erreur inattendue s\'est produite !',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 }
 
 export async function listSellerOrdersController(req: AuthRequest, res: Response) {
-  const orders = await listSellerOrdersUsecase(req.user!.id);
-  return res.json(orders);
+  try {
+    const orders = await listSellerOrdersUsecase(req.user!.id);
+    return res.json(orders);
+  } catch (err: any) {
+    console.error('Error fetching seller orders:', err);
+    return res.status(500).json({ 
+      status: 'error',
+      message: 'Une erreur inattendue s\'est produite !',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
 }
 
 export async function updateOrderStatusController(req: AuthRequest, res: Response) {
