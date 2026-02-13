@@ -3,7 +3,8 @@ import {
   orderShippedEmail,
   orderDeliveredEmail,
   orderCancelledEmail,
-  paymentConfirmedEmail
+  paymentConfirmedEmail,
+  orderAdminNotificationEmail
 } from './orderEmailTemplates';
 
 export const getEmailTemplate = (type: string, data: any) => {
@@ -12,6 +13,18 @@ export const getEmailTemplate = (type: string, data: any) => {
   switch (type) {
     case "ORDER_CREATED":
       return orderConfirmationEmail({
+        orderNumber: data.orderNumber || data.orderId,
+        customerName: data.customerName || 'Client',
+        totalAmount: data.totalAmount,
+        deliveryFee: data.deliveryFee || 0,
+        items: data.items,
+        deliveryAddress: data.deliveryAddress,
+        paymentMethod: data.paymentMethod,
+        trackingUrl
+      });
+    
+    case "NEW_ORDER_ADMIN":
+      return orderAdminNotificationEmail({
         orderNumber: data.orderNumber || data.orderId,
         customerName: data.customerName || 'Client',
         totalAmount: data.totalAmount,

@@ -97,7 +97,6 @@ export function orderConfirmationEmail(data: OrderEmailData): { subject: string;
 
 /**
  * Order Shipped Email
- * Sent when order status changes to SHIPPED
  */
 export function orderShippedEmail(data: OrderEmailData): { subject: string; html: string } {
   const content = `
@@ -141,7 +140,6 @@ export function orderShippedEmail(data: OrderEmailData): { subject: string; html
 
 /**
  * Order Delivered Email
- * Sent when order status changes to DELIVERED
  */
 export function orderDeliveredEmail(data: OrderEmailData): { subject: string; html: string } {
   const content = `
@@ -179,7 +177,6 @@ export function orderDeliveredEmail(data: OrderEmailData): { subject: string; ht
 
 /**
  * Order Cancelled Email
- * Sent when an order is cancelled
  */
 export function orderCancelledEmail(data: OrderEmailData & { reason?: string }): { subject: string; html: string } {
   const content = `
@@ -217,7 +214,6 @@ export function orderCancelledEmail(data: OrderEmailData & { reason?: string }):
 
 /**
  * Payment Confirmation Email
- * Sent when payment is confirmed
  */
 export function paymentConfirmedEmail(data: OrderEmailData): { subject: string; html: string } {
   const content = `
@@ -247,6 +243,74 @@ export function paymentConfirmedEmail(data: OrderEmailData): { subject: string; 
         text: 'Suivre ma commande',
         url: data.trackingUrl
       } : undefined
+    })
+  };
+}
+
+/**
+ * Order Admin Notification Email
+ */
+export function orderAdminNotificationEmail(data: OrderEmailData): { subject: string; html: string } {
+  const itemsHtml = data.items?.map(item => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+        <strong>${item.name}</strong><br>
+        <span style="color: #999; font-size: 13px;">Quantité: ${item.quantity}</span>
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-align: right;">
+        ${formatPrice(item.price * item.quantity)}
+      </td>
+    </tr>
+  `).join('') || '';
+
+  const content = `
+    <p>Une nouvelle commande vient d'être passée sur Colobane !</p>
+    
+    <div class="info-box">
+      <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Détails Admin</h3>
+      <p><strong>Commande:</strong> #${data.orderNumber}</p>
+      <p><strong>Client:</strong> ${data.customerName}</p>
+      <p><strong>Montant Total:</strong> ${formatPrice(data.totalAmount)}</p>
+      <p><strong>Frais Livraison:</strong> ${formatPrice(data.deliveryFee)}</p>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="text-align: left; border-bottom: 2px solid #eee; padding-bottom: 10px;">Article</th>
+          <th style="text-align: right; border-bottom: 2px solid #eee; padding-bottom: 10px;">Prix</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsHtml}
+      </tbody>
+    </table>
+
+    <div style="margin: 25px 0;">
+      <h3 style="font-size: 16px; color: #333; margin-bottom: 10px;">📍 Adresse de livraison</h3>
+      <p style="color: #666; margin: 0; padding: 12px; background-color: #f8f9fa; border-radius: 6px;">
+        ${data.deliveryAddress || 'Non spécifiée'}
+      </p>
+    </div>
+
+    ${data.paymentMethod ? `
+      <div style="margin: 25px 0;">
+        <h3 style="font-size: 16px; color: #333; margin-bottom: 10px;">💳 Mode de paiement</h3>
+        <p style="color: #666; margin: 0;">${data.paymentMethod}</p>
+      </div>
+    ` : ''}
+  `;
+
+  return {
+    subject: `🔔 NOUVELLE COMMANDE #${data.orderNumber}`,
+    html: baseEmailTemplate({
+      title: 'Nouvelle commande reçue !',
+      preheader: `Commande #${data.orderNumber} par ${data.customerName}`,
+      content,
+      ctaButton: {
+        text: 'Voir sur le Dashboard',
+        url: `${process.env.ADMIN_URL || 'https://admin.mycolobane.com'}/orders/${data.orderNumber}`
+      }
     })
   };
 }

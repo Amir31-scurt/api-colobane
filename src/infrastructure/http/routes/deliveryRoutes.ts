@@ -6,13 +6,17 @@ import {
   assignDelivererController,
   updateDeliveryStatusController,
   listDeliveryZonesController,
-  calculateFeeController
+  calculateFeeController,
+  listDeliveryMethodsController
 } from "../controllers/deliveryController";
 
 const router = express.Router();
 
 // Public: List zones
 router.get("/zones", listDeliveryZonesController);
+
+// Public: List delivery methods
+router.get("/methods", listDeliveryMethodsController);
 
 // Public (or auth optional): Calculate fee
 router.post("/calculate", calculateFeeController);

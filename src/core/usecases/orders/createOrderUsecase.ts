@@ -20,10 +20,11 @@ interface CreateOrderInput {
   deliveryLocationId?: number; // Optional if Self-Collect, but good to have
   shippingAddress: string;
   paymentProvider: 'WAVE' | 'ORANGE_MONEY' | 'CASH';
+  customerName?: string;
 }
 
 export async function createOrderUsecase(input: CreateOrderInput) {
-  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress, paymentProvider } = input;
+  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress, paymentProvider, customerName } = input;
 
   if (!items || items.length === 0) {
     throw new Error("EMPTY_ORDER");
@@ -244,22 +245,44 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     }
   });
 
+  // 8. Notifications
+  const customer = !customerName ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+  const finalCustomerName = customerName || customer?.name || 'Client';
+
+  const emailMetadata = {
+    orderId: order.id,
+    orderNumber,
+    totalAmount: finalTotalAmount,
+    deliveryFee: totalDeliveryFee,
+    customerName: finalCustomerName,
+    items: orderItemsData.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      return {
+        name: product?.name || 'Produit',
+        quantity: item.quantity,
+        price: item.unitPrice
+      };
+    }),
+    deliveryAddress: shippingAddress,
+    paymentMethod: paymentProvider,
+  };
+
   await sendNotification({
     userId,
-    type: "ORDER_CREATED",
+    type: NotificationType.ORDER_CREATED,
     title: "Commande créée",
     message: `Votre commande #${orderNumber} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
-    metadata: { orderId: order.id, orderNumber, totalAmount: finalTotalAmount }
+    metadata: emailMetadata
   });
 
   // Notify Admins
   try {
      const { broadcastToAdmins } = await import("../../services/notificationService");
      await broadcastToAdmins(
-        NotificationType.ORDER_CREATED,
+        NotificationType.NEW_ORDER_ADMIN,
         "Nouvelle Commande",
         `Nouvelle commande #${orderNumber} d'un montant de ${finalTotalAmount} FCFA.`,
-        { orderId: order.id, orderNumber, amount: finalTotalAmount }
+        emailMetadata
      );
   } catch (err) {
       console.error("Failed to notify admins of new order:", err);

@@ -3,7 +3,9 @@ import type { AuthRequest } from "../middlewares/authMiddleware";
 import { applyDeliveryToOrderUsecase } from "../../../core/usecases/delivery/applyDeliveryToOrderUsecase";
 import { assignDelivererUsecase } from "../../../core/usecases/delivery/assignDelivererUsecase";
 import { updateDeliveryStatusUsecase } from "../../../core/usecases/delivery/updateDeliveryStatusUsecase";
+
 import { listDeliveryZones } from "../../../core/usecases/delivery/listDeliveryZones";
+import { listDeliveryMethods } from "../../../core/usecases/delivery/listDeliveryMethods";
 
 export async function listDeliveryZonesController(req: Request, res: Response) {
   try {
@@ -88,5 +90,15 @@ export async function calculateFeeController(req: Request, res: Response) {
     }
     console.error(err);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
+
+export async function listDeliveryMethodsController(req: Request, res: Response) {
+  try {
+    const methods = await listDeliveryMethods();
+    return res.json(methods);
+  } catch (err: any) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur récupération méthodes de livraison" });
   }
 }
