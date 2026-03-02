@@ -13,7 +13,13 @@ export async function adminLoginUsecase(email: string, password: string) {
     throw new Error("FORBIDDEN");
   }
 
-  if (!user.password) throw new Error("INVALID_CREDENTIALS");
+  // Google-only users have no password — they must use the Google login flow
+  if (!user.password) {
+    if (user.googleId) {
+      throw new Error("GOOGLE_ACCOUNT_USE_GOOGLE_LOGIN");
+    }
+    throw new Error("INVALID_CREDENTIALS");
+  }
   const ok = await verifyPassword(password, user.password);
   if (!ok) throw new Error("INVALID_CREDENTIALS");
 

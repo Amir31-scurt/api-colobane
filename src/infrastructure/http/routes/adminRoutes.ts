@@ -9,7 +9,7 @@ import {
   toggleSellerStatusController,
   getAdminAlertsController
 } from "../controllers/adminController";
-import { adminLoginController, adminLogoutController, getAdminMeController } from "../controllers/admin/adminAuthController";
+import { adminLoginController, adminLogoutController, getAdminMeController, adminGoogleLoginController } from "../controllers/admin/adminAuthController";
 import { requireRole } from "../middlewares/auth/requireRole";
 import { requireAuth } from "../middlewares/auth/requireAuth";
 import {
@@ -31,8 +31,10 @@ router.get("/sellers", requireAuth, requireRole("ADMIN"), getAdminSellersControl
 router.get("/orders/export/csv", requireAuth, requireRole("ADMIN"), exportOrdersCsvController);
 router.put("/sellers/:sellerId/status", requireAuth, requireRole("ADMIN"), toggleSellerStatusController);
 router.get("/alerts", requireAuth, requireRole("ADMIN"), getAdminAlertsController);
-// Public (admin login)
+
+// Public auth routes
 router.post("/auth/login", adminLoginController);
+router.post("/auth/google-login", adminGoogleLoginController);
 
 // Protected (admin & seller)
 router.use(requireAuth, requireRole("ADMIN", "SELLER"));
