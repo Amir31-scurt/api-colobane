@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
+import axios from "axios";
 import { adminLoginUsecase } from "../../../../core/usecases/admin/auth/adminLoginUsecase";
 import { adminLogoutUsecase } from "../../../../core/usecases/admin/auth/adminLogoutUsecase";
-import { googleLogin } from "../../../../core/usecases/auth/googleLogin";
 import { signAccessToken } from "../../../../core/security/jwt";
+import { prisma } from "../../../prisma/prismaClient";
 
 
 export async function adminLoginController(req: Request, res: Response) {
@@ -31,40 +32,80 @@ export async function adminLogoutController(req: Request, res: Response) {
 /**
  * Google OAuth login for the admin/seller dashboard.
  *
- * Accepts a Google access token, verifies it with Google via the shared
- * googleLogin usecase, then checks the user's role (must be ADMIN or SELLER).
- * Issues a short-lived admin JWT on success.
+ * Flow:
+ *  1. Verify the Google access token with Google's userinfo endpoint.
+ *  2. Look up the user by email in the database — NO account creation.
+ *  3. Check role: only ADMIN or SELLER may proceed.
+ *  4. Issue a short-lived admin JWT.
+ *
+ * Every failure path returns an explicit French message in `reason`.
  */
 export async function adminGoogleLoginController(req: Request, res: Response) {
   try {
     const { token } = req.body || {};
-    if (!token) return res.status(400).json({ error: "INVALID_BODY" });
+    if (!token) {
+      return res.status(400).json({
+        error: "INVALID_BODY",
+        reason: "Le jeton Google est manquant.",
+      });
+    }
 
-    // 1. Verify Google token and look up the user
-    const result = await googleLogin({ token, phone: "" });
-    const { user } = result;
+    // ── 1. Verify token with Google ──────────────────────────────────────────
+    let googleEmail: string;
+    let googleId: string;
+    try {
+      const { data } = await axios.get<{ sub: string; email: string }>(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        { headers: { Authorization: `Bearer ${token}` }, timeout: 8000 }
+      );
+      if (!data.email) throw new Error("NO_EMAIL");
+      googleEmail = data.email.toLowerCase();
+      googleId = data.sub;
+    } catch {
+      return res.status(401).json({
+        error: "INVALID_GOOGLE_TOKEN",
+        reason: "Le jeton Google est invalide ou expiré. Veuillez réessayer.",
+      });
+    }
 
-    // 2. Blocked user — checked before role so the message is specific
-    const { prisma } = await import("../../../prisma/prismaClient");
-    const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
-    if (freshUser?.isBlocked) {
+    // ── 2. Look up existing user by email — never create ─────────────────────
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email: googleEmail }, { googleId }] },
+    });
+
+    if (!user) {
+      return res.status(403).json({
+        error: "ACCOUNT_NOT_FOUND",
+        reason:
+          `Aucun compte Colobane n'est associé à l'adresse ${googleEmail}. ` +
+          "Inscrivez-vous d'abord sur colobane.com, puis demandez l'activation de votre boutique.",
+      });
+    }
+
+    // ── 3. Blocked check ─────────────────────────────────────────────────────
+    if (user.isBlocked) {
       return res.status(403).json({
         error: "USER_BLOCKED",
-        reason: "Votre compte a été suspendu. Contactez le support Colobane.",
+        reason: "Votre compte a été suspendu. Contactez le support Colobane pour plus d'informations.",
       });
     }
 
-    // 3. Guard: only ADMIN or SELLER may access the dashboard
+    // ── 4. Role check — only ADMIN or SELLER ─────────────────────────────────
     if (user.role !== "ADMIN" && user.role !== "SELLER") {
       return res.status(403).json({
-        error: "FORBIDDEN",
+        error: "NOT_A_SELLER",
         reason:
-          "Ce compte Google n'a pas encore le statut vendeur. " +
-          "Votre boutique doit être approuvée par un administrateur avant de pouvoir accéder au tableau de bord.",
+          "Seuls les vendeurs approuvés peuvent accéder à ce tableau de bord. " +
+          "Votre boutique doit être approuvée par un administrateur Colobane avant votre premier accès.",
       });
     }
 
-    // 4. Issue a dedicated admin JWT (4 h)
+    // ── 5. Link googleId if missing (user may have registered with email) ─────
+    if (!user.googleId) {
+      await prisma.user.update({ where: { id: user.id }, data: { googleId } });
+    }
+
+    // ── 6. Issue admin JWT (4 h) ──────────────────────────────────────────────
     const accessToken = signAccessToken(
       { sub: String(user.id), role: user.role as "ADMIN" | "SELLER" },
       "4h"
@@ -76,20 +117,11 @@ export async function adminGoogleLoginController(req: Request, res: Response) {
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
     });
   } catch (e: any) {
-    const code = e?.message || "UNKNOWN";
-    const status =
-      code === "INVALID_GOOGLE_TOKEN" ? 401 :
-      code === "PHONE_REQUIRED"       ? 422 :
-      code === "USER_BLOCKED"         ? 403 : 500;
-
-    const reason =
-      code === "INVALID_GOOGLE_TOKEN"
-        ? "Le jeton Google est invalide ou expiré. Veuillez réessayer."
-        : code === "PHONE_REQUIRED"
-        ? "Un numéro de téléphone est requis pour finaliser l'inscription."
-        : "Une erreur inattendue s'est produite. Veuillez réessayer.";
-
-    return res.status(status).json({ error: code, reason });
+    console.error("[adminGoogleLogin]", e);
+    return res.status(500).json({
+      error: "INTERNAL_ERROR",
+      reason: "Une erreur inattendue s'est produite. Veuillez réessayer.",
+    });
   }
 }
 
