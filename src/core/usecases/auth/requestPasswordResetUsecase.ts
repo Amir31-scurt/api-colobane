@@ -1,5 +1,7 @@
 // src/core/usecases/auth/requestPasswordResetUsecase
 import { prisma } from "../../../infrastructure/prisma/prismaClient";
+import { sendEmail } from "../../../infrastructure/email/resendProvider";
+import { resetPasswordTemplate } from "../../../infrastructure/email/templates/resetPasswordTemplate";
 import crypto from "crypto";
 
 export async function requestPasswordResetUsecase(email: string) {
@@ -24,6 +26,11 @@ export async function requestPasswordResetUsecase(email: string) {
     }
   });
 
-  // ICI: appeler un service d'envoi d'email plus tard
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
+  await sendEmail({
+    to: user.email,
+    subject: "Réinitialisation de votre mot de passe – Colobane",
+    html: resetPasswordTemplate(resetLink),
+  });
 }
