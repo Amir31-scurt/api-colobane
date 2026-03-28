@@ -5,7 +5,7 @@ import { verifyAccessToken as verifyUserToken } from "../../../core/services/tok
 declare global {
     namespace Express {
         interface Request {
-            auth?: { userId: number; role: "USER" | "SELLER" | "ADMIN" };
+            auth?: { userId: number; role: "CUSTOMER" | "USER" | "SELLER" | "ADMIN" };
             user?: { id: number; email: string; role: string; phone: string };
         }
     }
@@ -42,7 +42,7 @@ export function unifiedAuth(req: Request, res: Response, next: NextFunction) {
             // Also set req.auth for compatibility
             req.auth = {
                 userId: payload.id,
-                role: payload.role as "USER" | "SELLER" | "ADMIN"
+                role: payload.role as "CUSTOMER" | "USER" | "SELLER" | "ADMIN"
             };
             return next();
         } catch (err2) {

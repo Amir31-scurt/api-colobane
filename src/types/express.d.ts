@@ -11,7 +11,7 @@ declare global {
       };
       auth?: {
         userId: number;
-        role: "USER" | "SELLER" | "ADMIN";
+        role: "CUSTOMER" | "USER" | "SELLER" | "ADMIN";
       };
     }
   }
