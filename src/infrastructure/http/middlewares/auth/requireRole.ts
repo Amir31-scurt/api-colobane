@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 
-export function requireRole(...roles: Array<"USER" | "SELLER" | "ADMIN">) {
+export function requireRole(...roles: Array<"CUSTOMER" | "USER" | "SELLER" | "ADMIN">) {
   return (req: Request, res: Response, next: NextFunction) => {
     const role = req.auth?.role;
     if (!role) return res.status(401).json({ error: "UNAUTHORIZED" });
