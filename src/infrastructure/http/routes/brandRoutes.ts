@@ -12,6 +12,7 @@ import {
 import {
   approveBrandController,
   rejectBrandController,
+  disapproveBrandController,
   listPendingBrandsController,
   listAllBrandsController
 } from "../controllers/admin/adminBrandController";
@@ -164,6 +165,20 @@ router.post("/:brandId/approve", requireAuth, requireRole("ADMIN"), approveBrand
  *         description: Marque rejetée
  */
 router.post("/:brandId/reject", requireAuth, requireRole("ADMIN"), rejectBrandController);
+
+/**
+ * @swagger
+ * /api/brands/{brandId}/disapprove:
+ *   post:
+ *     summary: Désapprouver une marque approuvée (Admin only)
+ *     tags: [Brands]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Marque désapprouvée (masquée, propriétaire repasse USER)
+ */
+router.post("/:brandId/disapprove", requireAuth, requireRole("ADMIN"), disapproveBrandController);
 
 /**
  * @swagger

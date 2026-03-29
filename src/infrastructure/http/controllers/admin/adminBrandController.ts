@@ -207,6 +207,59 @@ export async function rejectBrandController(req: Request, res: Response) {
     }
 }
 
+/**
+ * Disapprove (suspend) an already-approved brand — hides it from the marketplace
+ * and downgrades the owner back to USER role.
+ */
+export async function disapproveBrandController(req: Request, res: Response) {
+    try {
+        const brandId = Number(req.params.brandId);
+        const adminId = (req as any).auth?.userId;
+
+        if (!Number.isFinite(brandId)) {
+            return res.status(400).json({ error: "INVALID_BRAND_ID" });
+        }
+
+        const brand = await prisma.brand.findUnique({
+            where: { id: brandId },
+            include: { owner: true }
+        });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        if (brand.approvalStatus !== "APPROVED") {
+            return res.status(400).json({ error: "BRAND_NOT_APPROVED" });
+        }
+
+        // Suspend: revert to PENDING so it is hidden, deactivate
+        const updatedBrand = await prisma.brand.update({
+            where: { id: brandId },
+            data: {
+                approvalStatus: "PENDING",
+                isActive: false,
+                reviewedAt: new Date(),
+                reviewedBy: adminId
+            }
+        });
+
+        // Downgrade owner back to CUSTOMER
+        await prisma.user.update({
+            where: { id: brand.ownerId },
+            data: { role: "CUSTOMER" }
+        });
+
+        return res.json({
+            message: "Brand disapproved and hidden from marketplace",
+            brand: updatedBrand
+        });
+    } catch (err: any) {
+        console.error("[disapproveBrand]", err);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
 // =====================
 // EMAIL TEMPLATES
 // =====================
