@@ -1,5 +1,5 @@
 import express from "express";
-import { authRequired, isSeller, isAdmin } from "../middlewares/authMiddleware";
+import { authRequired, isSeller, isAdmin, optionalAuth } from "../middlewares/authMiddleware";
 import {
   createOrderController,
   listUserOrdersController,
@@ -35,6 +35,8 @@ const router = express.Router();
  *             properties:
  *               shippingAddress: { type: string }
  *               paymentProvider: { type: string, enum: [WAVE, ORANGE_MONEY, CASH] }
+ *               customerName: { type: string }
+ *               customerPhone: { type: string }
  *               items: 
  *                 type: array
  *                 items:
@@ -47,7 +49,7 @@ const router = express.Router();
  *       201:
  *         description: Commande créée
  */
-router.post("/", authRequired, createOrderController);
+router.post("/", optionalAuth, createOrderController);
 
 /**
  * @swagger

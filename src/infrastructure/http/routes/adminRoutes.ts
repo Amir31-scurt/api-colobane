@@ -19,7 +19,7 @@ import {
 } from "../controllers/admin/adminStatsController";
 import { adminGetOrderController, adminListOrdersController, adminUpdateOrderStatusController } from "../controllers/admin/adminOrdersController";
 import { adminListProductsController, adminToggleProductActiveController, adminUpdateProductController } from "../controllers/admin/adminProductsController";
-import { adminListUsersController, adminToggleUserBlockController, adminUpdateUserRoleController } from "../controllers/admin/adminUsersController";
+import { adminListUsersController, adminToggleUserBlockController, adminUpdateUserRoleController, adminSendEmailController } from "../controllers/admin/adminUsersController";
 
 const router = express.Router();
 
@@ -65,6 +65,7 @@ router.get("/users", adminListUsersController);
 // Write actions restricted to ADMIN
 router.patch("/users/:id/role", requireRole("ADMIN"), adminUpdateUserRoleController);
 router.patch("/users/:id/block", requireRole("ADMIN"), adminToggleUserBlockController);
+router.post("/users/email", requireRole("ADMIN"), adminSendEmailController);
 
 // Delivery Zones
 import { adminCreateDeliveryZoneController, adminListDeliveryZonesController } from "../controllers/admin/adminDeliveryController";

@@ -13,7 +13,7 @@ interface OrderItemInput {
 }
 
 interface CreateOrderInput {
-  userId: number;
+  userId?: number;
   items: OrderItemInput[];
   // New Delivery Inputs
   deliveryMethodId: number;
@@ -21,10 +21,11 @@ interface CreateOrderInput {
   shippingAddress: string;
   paymentProvider: 'WAVE' | 'ORANGE_MONEY' | 'CASH';
   customerName?: string;
+  customerPhone?: string;
 }
 
 export async function createOrderUsecase(input: CreateOrderInput) {
-  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress, paymentProvider, customerName } = input;
+  const { userId, items, deliveryMethodId, deliveryLocationId, shippingAddress, paymentProvider, customerName, customerPhone } = input;
 
   if (!items || items.length === 0) {
     throw new Error("EMPTY_ORDER");
@@ -220,6 +221,8 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     data: {
       orderNumber,
       userId,
+      customerName,
+      customerPhone,
       totalAmount: finalTotalAmount,
       deliveryFee: totalDeliveryFee,
       deliveryMethodId: deliveryMethod.id,
@@ -246,7 +249,7 @@ export async function createOrderUsecase(input: CreateOrderInput) {
   });
 
   // 8. Notifications
-  const customer = !customerName ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+  const customer = (!customerName && userId) ? await prisma.user.findUnique({ where: { id: userId } }) : null;
   const finalCustomerName = customerName || customer?.name || 'Client';
 
   const emailMetadata = {
@@ -267,13 +270,15 @@ export async function createOrderUsecase(input: CreateOrderInput) {
     paymentMethod: paymentProvider,
   };
 
-  await sendNotification({
-    userId,
-    type: NotificationType.ORDER_CREATED,
-    title: "Commande créée",
-    message: `Votre commande #${orderNumber} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
-    metadata: emailMetadata
-  });
+  if (userId) {
+    await sendNotification({
+      userId,
+      type: NotificationType.ORDER_CREATED,
+      title: "Commande créée",
+      message: `Votre commande #${orderNumber} a été créée avec succès. Montant total: ${finalTotalAmount} FCFA.`,
+      metadata: emailMetadata
+    });
+  }
 
   // Notify Admins
   try {

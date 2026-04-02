@@ -290,8 +290,13 @@ model Product {
 model Order {
   id               Int             @id @default(autoincrement())
   orderNumber      String?         @unique // Optional for migration safety
-  user             User            @relation(fields: [userId], references: [id])
-  userId           Int
+  user             User?           @relation(fields: [userId], references: [id])
+  userId           Int?
+  
+  // Guest Information
+  customerName     String?
+  customerPhone    String?
+
   totalAmount      Float
   paidAt           DateTime?
   status           OrderStatus     @default(PENDING)

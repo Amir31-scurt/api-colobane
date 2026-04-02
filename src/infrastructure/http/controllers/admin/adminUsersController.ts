@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { adminListUsersUsecase } from "../../../../core/usecases/admin/users/adminListUsersUsecase";
 import { adminUpdateUserRoleUsecase } from "../../../../core/usecases/admin/users/adminUpdateUserRoleUsecase";
 import { adminToggleUserBlockUsecase } from "../../../../core/usecases/admin/users/adminToggleUserBlockUsecase";
+import { adminSendEmailToUsersUsecase } from "../../../../core/usecases/admin/users/adminSendEmailToUsersUsecase";
 
 export async function adminListUsersController(req: Request, res: Response) {
   try {
@@ -50,5 +51,24 @@ export async function adminToggleUserBlockController(req: Request, res: Response
     return res.json(updated);
   } catch (e: any) {
     return res.status(e?.message === "USER_NOT_FOUND" ? 404 : 400).json({ error: e?.message || "UNKNOWN" });
+  }
+}
+
+export async function adminSendEmailController(req: Request, res: Response) {
+  try {
+    const { subject, html } = req.body;
+    if (!subject || !html) {
+      return res.status(400).json({ error: "SUBJECT_AND_HTML_REQUIRED" });
+    }
+
+    const result = await adminSendEmailToUsersUsecase({
+      actorId: req.auth!.userId,
+      subject,
+      html
+    });
+
+    return res.json(result);
+  } catch (e: any) {
+    return res.status(400).json({ error: e?.message || "UNKNOWN" });
   }
 }

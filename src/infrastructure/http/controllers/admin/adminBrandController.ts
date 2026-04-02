@@ -261,7 +261,7 @@ export async function disapproveBrandController(req: Request, res: Response) {
 }
 
 // =====================
-// EMAIL TEMPLATES
+//    EMAIL TEMPLATES
 // =====================
 
 function getApprovalEmailTemplate(userName: string, brandName: string): string {

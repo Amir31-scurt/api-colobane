@@ -39,6 +39,26 @@ export function authRequired(req: AuthRequest, res: Response, next: NextFunction
   }
 }
 
+export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith("Bearer ")) {
+    return next();
+  }
+  const token = header.split(" ")[1];
+  try {
+    const payload = verifyAccessToken(token);
+    req.user = {
+      id: payload.id,
+      email: payload.email,
+      role: payload.role,
+      phone: payload.phone
+    };
+  } catch (err) {
+    // Proceed as guest if token is invalid
+  }
+  return next();
+}
+
 // Vérification du rôle ADMIN
 export function isAdmin(req: AuthRequest, res: Response, next: NextFunction) {
   if (!req.user || req.user.role !== "ADMIN") {
