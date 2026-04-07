@@ -25,17 +25,17 @@ export async function adminSendEmailToUsersUsecase({ actorId, subject, html }: A
 
   const emails = users.map(u => u.email).filter(Boolean) as string[];
 
-  // 3. Batch send (in background or await chunks if large)
-  // Send Email Batch supports arrays
-  if (emails.length > 0) {
-    // Fire and forget so we don't block the request if there are thousands
-    sendEmailBatch(emails, subject, html).catch((err) => {
-      console.error("Failed to send batch emails:", err);
-    });
+  if (emails.length === 0) {
+    return { success: true, recipientsCount: 0, sent: 0, failed: 0 };
   }
 
+  // 3. Actually await the batch so we know if it worked
+  const result = await sendEmailBatch(emails, subject, html);
+
   return {
-    success: true,
-    recipientsCount: emails.length
+    success: result.sent > 0,
+    recipientsCount: emails.length,
+    sent: result.sent,
+    failed: result.failed
   };
 }
