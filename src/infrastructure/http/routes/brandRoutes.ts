@@ -16,6 +16,11 @@ import {
   listPendingBrandsController,
   listAllBrandsController
 } from "../controllers/admin/adminBrandController";
+import {
+  getMyBrandController,
+  updateMyBrandController,
+  uploadMiddleware,
+} from "../controllers/seller/sellerBrandController";
 
 const router = express.Router();
 
@@ -84,6 +89,17 @@ router.get("/:slug", getBrandController);
  *         description: Marque créée (en attente d'approbation)
  */
 router.post("/", requireAuth, createBrandController);
+
+// =====================
+// SELLER SELF-SERVICE ROUTES
+// =====================
+
+/** GET /api/brands/seller/me — Owner reads their own brand */
+router.get("/seller/me", requireAuth, getMyBrandController);
+
+/** PATCH /api/brands/seller/me — Owner updates their brand (logo, colors, template, etc.) */
+router.patch("/seller/me", requireAuth, uploadMiddleware, updateMyBrandController);
+
 
 // =====================
 // ADMIN APPROVAL ROUTES

@@ -228,6 +228,15 @@ model Brand {
 
   products   Product[]
   categories Category[] @relation("BrandCategories")
+  template   BrandTemplate @default(MODERN)
+}
+
+enum BrandTemplate {
+  MODERN
+  ELEGANCE
+  VITRINE
+  MARCHE
+  CLASSIQUE
 }
 
 enum BrandApprovalStatus {
