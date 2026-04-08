@@ -234,7 +234,7 @@ function getAdminNotificationTemplate(userName: string, brandName: string, brand
       </table>
       
       <p style="margin-top: 20px;">
-        <a href="${process.env.ADMIN_DASHBOARD_URL || 'https://admin.colobane.com'}/dashboard" 
+        <a href="${process.env.ADMIN_DASHBOARD_URL || 'https://admin.mycolobane.com'}/dashboard" 
            style="background: #f59e0b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
           Voir dans le dashboard
         </a>

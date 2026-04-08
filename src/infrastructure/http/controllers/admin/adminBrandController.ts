@@ -289,7 +289,7 @@ function getApprovalEmailTemplate(userName: string, brandName: string): string {
       </ul>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.SELLER_DASHBOARD_URL || 'https://admin.colobane.com/seller'}" 
+        <a href="${process.env.SELLER_DASHBOARD_URL || 'https://admin.mycolobane.com/seller'}" 
            style="background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
           Accéder à mon tableau de bord
         </a>
