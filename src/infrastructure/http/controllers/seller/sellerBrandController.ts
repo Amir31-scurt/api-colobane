@@ -13,8 +13,10 @@ export const uploadMiddleware = upload.single("logo");
  */
 export async function getMyBrandController(req: AuthRequest, res: Response) {
   try {
+    const ownerId = (req as any).auth?.userId;
+    if (!ownerId) return res.status(401).json({ error: "Non autorisé" });
     const brand = await prisma.brand.findFirst({
-      where: { ownerId: req.user!.id },
+      where: { ownerId },
       include: { categories: true, location: true },
     });
 
@@ -35,8 +37,10 @@ export async function getMyBrandController(req: AuthRequest, res: Response) {
  */
 export async function updateMyBrandController(req: AuthRequest, res: Response) {
   try {
+    const ownerId = (req as any).auth?.userId;
+    if (!ownerId) return res.status(401).json({ error: "Non autorisé" });
     const brand = await prisma.brand.findFirst({
-      where: { ownerId: req.user!.id },
+      where: { ownerId },
     });
 
     if (!brand) {
