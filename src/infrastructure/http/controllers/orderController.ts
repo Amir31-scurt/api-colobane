@@ -9,13 +9,14 @@ import { getOrderTrackingUsecase } from "../../../core/usecases/orders/getOrderT
 export async function createOrderController(req: AuthRequest, res: Response) {
   try {
     const order = await createOrderUsecase({
-      userId: req.user!.id,
+      userId: req.user?.id,
       items: req.body.items,
       deliveryMethodId: req.body.deliveryMethodId,
       deliveryLocationId: req.body.deliveryLocationId,
       shippingAddress: req.body.shippingAddress,
       paymentProvider: req.body.paymentProvider,
-      customerName: req.body.customerName
+      customerName: req.body.customerName,
+      customerPhone: req.body.customerPhone
     });
 
     return res.status(201).json(order);

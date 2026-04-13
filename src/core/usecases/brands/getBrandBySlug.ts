@@ -3,7 +3,15 @@ import { prisma } from "../../../infrastructure/prisma/prismaClient";
 
 export async function getBrandBySlugUsecase(slug: string) {
   const brand = await prisma.brand.findUnique({
-    where: { slug }
+    where: { slug },
+    include: {
+      owner: {
+        select: {
+          phone: true,
+          name: true
+        }
+      }
+    }
   });
 
   if (!brand) {

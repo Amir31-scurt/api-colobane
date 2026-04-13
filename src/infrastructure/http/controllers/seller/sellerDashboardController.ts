@@ -15,6 +15,12 @@ import { updatePromotionUsecase } from "../../../../core/usecases/promotions/upd
 import { togglePromotionUsecase } from "../../../../core/usecases/promotions/togglePromotionUsecase";
 import { assignPromotionToProductsUsecase } from "../../../../core/usecases/promotions/assignPromotionToProductsUsecase";
 import { prisma } from "../../../prisma/prismaClient";
+import { uploadImage } from "../../../files/uploadConfig";
+import multer from "multer";
+
+// Multer for product image (memory storage -> upload to R2)
+const _multer = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+export const productUploadMiddleware = _multer.single("image");
 
 
 export async function sellerGetStatsController(req: Request, res: Response) {
@@ -50,12 +56,45 @@ export async function sellerCreateProductController(req: Request, res: Response)
     try {
         const userId = req.auth!.userId;
         const body = req.body;
-        const product = await sellerCreateProductUsecase(userId, body);
+
+        if (!body.name || !body.price || !body.stock || !body.categoryId) {
+            return res.status(400).json({ error: "MISSING_REQUIRED_FIELDS" });
+        }
+
+        // Upload image to R2 if provided
+        let imageUrl = body.imageUrl || "";
+        if ((req as any).file) {
+            const file = (req as any).file;
+            const ext = file.originalname.split(".").pop() || "jpg";
+            const key = `products/${userId}-${Date.now()}.${ext}`;
+            imageUrl = await uploadImage(file.buffer, key, file.mimetype);
+        }
+
+        if (!imageUrl) {
+            return res.status(400).json({ error: "IMAGE_REQUIRED" });
+        }
+
+        // Parse variants if passed as JSON string (FormData)
+        let variants = body.variants;
+        if (typeof variants === "string") {
+            try { variants = JSON.parse(variants); } catch { variants = []; }
+        }
+
+        const product = await sellerCreateProductUsecase(userId, {
+            name: body.name,
+            description: body.description,
+            price: parseFloat(body.price),
+            stock: parseInt(body.stock),
+            imageUrl,
+            categoryId: parseInt(body.categoryId),
+            variants: variants || [],
+        });
+
         return res.status(201).json(product);
     } catch (e: any) {
         console.error(e);
         if (e.message === "FORBIDDEN_BRAND_ACCESS") return res.status(403).json({ error: "FORBIDDEN" });
-        if (e.message === "NO_BRAND_FOUND") return res.status(400).json({ error: "NO_BRAND" });
+        if (e.message === "NO_BRAND_FOUND") return res.status(400).json({ error: "NO_BRAND", message: "Vous devez d'abord créer une boutique avant d'ajouter des produits." });
         return res.status(500).json({ error: "INTERNAL_ERROR" });
     }
 }
@@ -65,7 +104,32 @@ export async function sellerUpdateProductController(req: Request, res: Response)
         const userId = req.auth!.userId;
         const productId = Number(req.params.id);
         const body = req.body;
-        const product = await sellerUpdateProductUsecase(userId, productId, body);
+
+        // Upload new image to R2 if provided
+        let imageUrl = body.imageUrl;
+        if ((req as any).file) {
+            const file = (req as any).file;
+            const ext = file.originalname.split(".").pop() || "jpg";
+            const key = `products/${userId}-${Date.now()}.${ext}`;
+            imageUrl = await uploadImage(file.buffer, key, file.mimetype);
+        }
+
+        // Parse variants if passed as JSON string (FormData)
+        let variants = body.variants;
+        if (typeof variants === "string") {
+            try { variants = JSON.parse(variants); } catch { variants = []; }
+        }
+
+        const updateData: any = {};
+        if (body.name) updateData.name = body.name;
+        if (body.description !== undefined) updateData.description = body.description;
+        if (body.price) updateData.price = parseFloat(body.price);
+        if (body.stock !== undefined) updateData.stock = parseInt(body.stock);
+        if (body.categoryId) updateData.categoryId = parseInt(body.categoryId);
+        if (imageUrl) updateData.imageUrl = imageUrl;
+        if (variants) updateData.variants = variants;
+
+        const product = await sellerUpdateProductUsecase(userId, productId, updateData);
         return res.json(product);
     } catch (e) {
         console.error(e);

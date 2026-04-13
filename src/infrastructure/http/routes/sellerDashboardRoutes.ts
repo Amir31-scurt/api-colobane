@@ -19,7 +19,8 @@ import {
     sellerGetPromotionController,
     sellerUpdatePromotionController,
     sellerTogglePromotionController,
-    sellerAssignPromotionToProductsController
+    sellerAssignPromotionToProductsController,
+    productUploadMiddleware
 } from "../controllers/seller/sellerDashboardController";
 import { getSellerFinances, requestPayout } from "../controllers/seller/sellerFinancesController";
 
@@ -80,7 +81,7 @@ router.get("/metrics", requireAuth, requireRole("SELLER", "ADMIN"), sellerGetSta
  *         description: Produit créé
  */
 router.get("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerListProductsController);
-router.post("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerCreateProductController);
+router.post("/products", requireAuth, requireRole("SELLER", "ADMIN"), productUploadMiddleware, sellerCreateProductController);
 
 /**
  * @swagger
@@ -99,7 +100,7 @@ router.post("/products", requireAuth, requireRole("SELLER", "ADMIN"), sellerCrea
  *       200:
  *         description: Produit mis à jour
  */
-router.patch("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerUpdateProductController);
+router.patch("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, productUploadMiddleware, sellerUpdateProductController);
 router.get("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerGetProductController);
 router.delete("/products/:id", requireAuth, requireRole("SELLER", "ADMIN"), ensureProductOwnership, sellerDeleteProductController);
 
