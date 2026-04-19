@@ -237,6 +237,7 @@ enum BrandTemplate {
   VITRINE
   MARCHE
   CLASSIQUE
+  STREET
 }
 
 enum BrandApprovalStatus {
