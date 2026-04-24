@@ -88,6 +88,7 @@ export async function sellerCreateProductController(req: Request, res: Response)
             imageUrl,
             categoryId: parseInt(body.categoryId),
             variants: variants || [],
+            // askOnWhatsApp: body.askOnWhatsApp === 'true' || body.askOnWhatsApp === true,
         });
 
         return res.status(201).json(product);
@@ -128,6 +129,7 @@ export async function sellerUpdateProductController(req: Request, res: Response)
         if (body.categoryId) updateData.categoryId = parseInt(body.categoryId);
         if (imageUrl) updateData.imageUrl = imageUrl;
         if (variants) updateData.variants = variants;
+        if (body.askOnWhatsApp !== undefined) updateData.askOnWhatsApp = body.askOnWhatsApp === 'true' || body.askOnWhatsApp === true;
 
         const product = await sellerUpdateProductUsecase(userId, productId, updateData);
         return res.json(product);

@@ -11,6 +11,8 @@ interface UpdateBrandInput {
   locationId?: number;
 }
 
+import slugify from "slugify";
+
 export async function updateBrandUsecase(input: UpdateBrandInput) {
   const { brandId, userId, ...data } = input;
 
@@ -28,11 +30,26 @@ export async function updateBrandUsecase(input: UpdateBrandInput) {
     throw new Error("UNAUTHORIZED");
   }
 
+  let newSlug = brand.slug;
+
+  if (data.name && data.name !== brand.name) {
+    let baseSlug = slugify(data.name, { lower: true, strict: true });
+    newSlug = baseSlug;
+
+    // Ensure uniqueness
+    let counter = 1;
+    while (await prisma.brand.findUnique({ where: { slug: newSlug } })) {
+        newSlug = `${baseSlug}-${counter}`;
+        counter++;
+    }
+  }
+
   // 3. Update
   const updatedBrand = await prisma.brand.update({
     where: { id: brandId },
     data: {
       ...data,
+      slug: newSlug,
     }
   });
 

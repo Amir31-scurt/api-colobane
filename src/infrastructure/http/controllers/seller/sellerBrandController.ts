@@ -3,6 +3,7 @@ import { prisma } from "../../../prisma/prismaClient";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 import { uploadImage } from "../../../files/uploadConfig";
 import multer from "multer";
+import slugify from "slugify";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 export const uploadMiddleware = upload.single("logo");
@@ -53,6 +54,18 @@ export async function updateMyBrandController(req: AuthRequest, res: Response) {
       if (req.body[key] !== undefined) {
         updates[key] = req.body[key];
       }
+    }
+
+    if (updates.name && updates.name !== brand.name) {
+      let baseSlug = slugify(updates.name, { lower: true, strict: true });
+      let newSlug = baseSlug;
+
+      let counter = 1;
+      while (await prisma.brand.findUnique({ where: { slug: newSlug } })) {
+          newSlug = `${baseSlug}-${counter}`;
+          counter++;
+      }
+      updates.slug = newSlug;
     }
 
     // Logo upload if file attached

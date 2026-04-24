@@ -128,7 +128,8 @@ export async function approveBrandController(req: Request, res: Response) {
                 await sendEmail({
                     to: brand.owner.email,
                     subject: "🎉 Votre boutique a été approuvée - Colobane",
-                    html: getApprovalEmailTemplate(brand.owner.name, brand.name)
+                    html: getApprovalEmailTemplate(brand.owner.name, brand.name),
+                    text: getApprovalEmailTemplateText(brand.owner.name, brand.name)
                 });
             } catch (emailErr) {
                 console.error("[approveBrand] Email failed:", emailErr);
@@ -190,7 +191,8 @@ export async function rejectBrandController(req: Request, res: Response) {
                 await sendEmail({
                     to: brand.owner.email,
                     subject: "Mise à jour de votre demande - Colobane",
-                    html: getRejectionEmailTemplate(brand.owner.name, brand.name, reason)
+                    html: getRejectionEmailTemplate(brand.owner.name, brand.name, reason),
+                    text: getRejectionEmailTemplateText(brand.owner.name, brand.name, reason)
                 });
             } catch (emailErr) {
                 console.error("[rejectBrand] Email failed:", emailErr);
@@ -284,12 +286,12 @@ function getApprovalEmailTemplate(userName: string, brandName: string): string {
       
       <ul style="font-size: 16px; color: #333;">
         <li>Ajouter vos produits</li>
-        <li>Gérer votre inventaire</li>
-        <li>Commencer à vendre sur Colobane</li>
+        <li>Gérer votre boutique</li>
+        <li>Gérer vos commandes</li>
       </ul>
       
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.SELLER_DASHBOARD_URL || 'https://admin.mycolobane.com/seller'}" 
+        <a href="${process.env.SELLER_DASHBOARD_URL || 'https://www.mycolobane.com/seller/shop'}" 
            style="background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
           Accéder à mon tableau de bord
         </a>
@@ -349,4 +351,39 @@ function getRejectionEmailTemplate(userName: string, brandName: string, reason?:
       </p>
     </div>
   `;
+}
+
+function getApprovalEmailTemplateText(userName: string, brandName: string): string {
+    return `Bonjour ${userName},
+
+Félicitations ! Nous avons le plaisir de vous informer que votre boutique ${brandName} a été approuvée !
+
+Vous pouvez maintenant :
+- Ajouter vos produits
+- Gérer votre boutique
+- Gérer vos commandes
+
+Accédez à votre tableau de bord ici : ${process.env.SELLER_DASHBOARD_URL || 'https://www.mycolobane.com/seller/shop'}
+
+Bienvenue dans la famille Colobane !
+L'équipe Colobane
+🇸🇳 Colobane - La marketplace du Sénégal
+`;
+}
+
+function getRejectionEmailTemplateText(userName: string, brandName: string, reason?: string): string {
+    return `Bonjour ${userName},
+
+Nous avons examiné votre demande pour la boutique ${brandName}.
+
+Malheureusement, nous ne pouvons pas approuver votre demande pour le moment.
+${reason ? `\nRaison : ${reason}\n` : ''}
+Vous pouvez soumettre une nouvelle demande après avoir corrigé les points mentionnés.
+
+Si vous avez des questions, n'hésitez pas à nous contacter.
+
+Cordialement,
+L'équipe Colobane
+🇸🇳 Colobane - La marketplace du Sénégal
+`;
 }

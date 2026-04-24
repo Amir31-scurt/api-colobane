@@ -8,6 +8,7 @@ interface EmailParams {
   to: string;
   subject: string;
   html: string;
+  text?: string;
   replyTo?: string;
 }
 
@@ -15,7 +16,7 @@ interface EmailParams {
  * Send a single email using Resend
  */
 export async function sendEmail(params: EmailParams): Promise<boolean> {
-  const { to, subject, html, replyTo } = params;
+  const { to, subject, html, text, replyTo } = params;
 
   if (!apiKey) {
     console.warn("⚠️ RESEND_API_KEY not set - email not sent to", to);
@@ -32,6 +33,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       to,
       subject,
       html,
+      text,
       replyTo: replyTo,
     });
 
@@ -52,7 +54,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
  * Send email to multiple recipients using Resend's batch API
  * Much faster than sending one-by-one
  */
-export async function sendEmailBatch(recipients: string[], subject: string, html: string): Promise<{ sent: number; failed: number }> {
+export async function sendEmailBatch(recipients: string[], subject: string, html: string, text?: string): Promise<{ sent: number; failed: number }> {
   if (!apiKey) {
     console.warn("⚠️ RESEND_API_KEY not set - batch email not sent");
     return { sent: 0, failed: recipients.length };
@@ -77,6 +79,7 @@ export async function sendEmailBatch(recipients: string[], subject: string, html
       to,
       subject,
       html,
+      text,
     }));
 
     try {
