@@ -124,7 +124,7 @@ export async function googleLogin(input: GoogleLoginInput) {
   // 5. Generate Tokens
   const tokenPayload = {
       id: user.id,
-      email: user.email!,
+      email: user.email,
       role: user.role,
       phone: user.phone
   };

@@ -72,7 +72,7 @@ export async function appleLogin(input: AppleLoginInput) {
   // 4. Generate Tokens
   const tokenPayload = {
       id: user.id,
-      email: user.email!,
+      email: user.email,
       role: user.role,
       phone: user.phone
   };

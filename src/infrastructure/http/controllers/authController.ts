@@ -16,12 +16,11 @@ export async function registerController(req: Request, res: Response) {
     const { name, email, password, phone } = req.body;
 
     // Validation
-    if (!name || !email || !password || !phone) {
+    if (!name || !password || !phone) {
       return res.status(400).json({
-        message: "Tous les champs sont requis",
+        message: "Les champs nom, mot de passe et téléphone sont requis",
         missing: {
           name: !name,
-          email: !email,
           password: !password,
           phone: !phone
         }
@@ -37,6 +36,9 @@ export async function registerController(req: Request, res: Response) {
   } catch (err: any) {
     if (err.message === "EMAIL_ALREADY_USED") {
       return res.status(409).json({ message: "Email déjà utilisé" });
+    }
+    if (err.message === "PHONE_ALREADY_USED") {
+      return res.status(409).json({ message: "Numéro de téléphone déjà utilisé" });
     }
 
     // Handle Prisma validation errors
@@ -54,8 +56,14 @@ export async function registerController(req: Request, res: Response) {
 
 export async function loginController(req: Request, res: Response) {
   try {
-    const { email, password } = req.body;
-    const { user, token, refreshToken } = await loginUser({ email, password });
+    const { email, identifier, password } = req.body;
+    const loginIdentifier = identifier || email;
+
+    if (!loginIdentifier || !password) {
+      return res.status(400).json({ message: "Identifiant et mot de passe requis" });
+    }
+
+    const { user, token, refreshToken } = await loginUser({ identifier: loginIdentifier, password });
 
     return res.json({
       message: "Connexion réussie",

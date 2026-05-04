@@ -6,7 +6,7 @@ const REFRESH_TOKEN_EXPIRES_IN = "30d";
 
 interface JwtPayload {
   id: number;
-  email: string;
+  email: string | null;
   role: string;
   phone: string;
 }

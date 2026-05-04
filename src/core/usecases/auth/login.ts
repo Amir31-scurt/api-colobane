@@ -3,13 +3,15 @@ import bcrypt from "bcryptjs";
 import { createAccessToken, createRefreshToken } from "../../services/tokenService";
 
 interface LoginInput {
-  email: string;
+  identifier: string; // can be email or phone
   password: string;
 }
 
 export async function loginUser(input: LoginInput) {
-  const user = await prisma.user.findUnique({
-    where: { email: input.email }
+  const isEmail = input.identifier.includes('@');
+  
+  const user = await prisma.user.findFirst({
+    where: isEmail ? { email: input.identifier } : { phone: input.identifier }
   });
 
   if (!user) {
@@ -30,14 +32,14 @@ export async function loginUser(input: LoginInput) {
   // Create token using centralized service
   const token = createAccessToken({
       id: user.id,
-      email: user.email!,
+      email: user.email, // can be null
       role: user.role,
       phone: user.phone
   });
 
   const refreshToken = createRefreshToken({
       id: user.id,
-      email: user.email!,
+      email: user.email,
       role: user.role,
       phone: user.phone
   });
