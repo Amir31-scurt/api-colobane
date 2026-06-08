@@ -29,6 +29,8 @@ import publicRoutes from "./infrastructure/http/routes/publicRoutes";
 import favoriteRoutes from "./infrastructure/http/routes/favoriteRoutes";
 import contactRoutes from "./infrastructure/http/routes/contactRoutes";
 import aiRoutes from "./infrastructure/http/routes/aiRoutes";
+import serviceRoutes from "./infrastructure/http/routes/serviceRoutes";
+
 
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -100,6 +102,8 @@ app.use("/api/public", publicRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/services", serviceRoutes);
+
 
 // Debug Route (Temporary)
 import debugRoutes from "./infrastructure/http/routes/debugRoutes";

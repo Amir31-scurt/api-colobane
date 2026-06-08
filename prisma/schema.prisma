@@ -45,6 +45,12 @@ model User {
   Payout                 Payout[]                 @relation("SellerPayouts")
   FeeRecord              FeeRecord[]              @relation("SellerFees")
   favorites              Favorite[]
+
+  // Services feature
+  serviceProvider  ServiceProvider?
+  customerBookings Booking[]        @relation("CustomerBookings")
+  serviceReviews   ServiceReview[]  @relation("ServiceReviews")
+
 }
 
 model EmailVerificationToken {
@@ -521,4 +527,269 @@ model Favorite {
   createdAt DateTime @default(now())
 
   @@id([userId, productId])
+}
+
+// ============================================================
+// SERVICES FEATURE
+// ============================================================
+
+// --- Enums ---
+
+enum ProviderType {
+  INDIVIDUAL  // Artisan seul
+  SMALL_TEAM  // Petite équipe (2-5 personnes)
+  COMPANY     // Entreprise formelle
+}
+
+enum VerificationLevel {
+  NONE       // Pas vérifié (compte basique)
+  PHONE      // Téléphone vérifié
+  ID         // Pièce d'identité vérifiée
+  CERTIFIED  // Badge "Artisan Certifié Colobane"
+}
+
+enum ServicePriceType {
+  FIXED       // Prix fixe
+  HOURLY      // Par heure
+  DAILY       // Par journée
+  QUOTE       // Sur devis uniquement
+  NEGOTIABLE  // Prix indicatif, négociable
+}
+
+enum BookingStatus {
+  PENDING      // En attente de réponse du prestataire
+  NEGOTIATING  // En discussion / négociation du prix
+  ACCEPTED     // Accepté par le prestataire
+  IN_PROGRESS  // En cours d'exécution
+  COMPLETED    // Terminé
+  CANCELLED    // Annulé
+  DISPUTED     // Litige signalé
+}
+
+enum UrgencyLevel {
+  NORMAL  // Dans les prochains jours
+  SOON    // Aujourd'hui ou demain
+  URGENT  // Immédiat (urgence)
+}
+
+enum ServicePaymentMethod {
+  CASH
+  WAVE
+  ORANGE_MONEY
+  FREE_MONEY
+  PLATFORM  // Paiement via Colobane (futur)
+}
+
+enum ServiceCommissionType {
+  LEAD_FEE    // Frais par mise en relation (fixe)
+  PERCENTAGE  // Pourcentage du montant final
+}
+
+enum ServiceCommissionStatus {
+  PENDING
+  CHARGED
+  REFUNDED
+}
+
+// --- Models ---
+
+model ServiceZone {
+  id       Int     @id @default(autoincrement())
+  name     String  // ex: "Médina", "Parcelles Assainies"
+  slug     String  @unique
+  city     String  @default("Dakar")
+  isActive Boolean @default(true)
+
+  parentId Int?
+  parent   ServiceZone?  @relation("ZoneChildren", fields: [parentId], references: [id])
+  children ServiceZone[] @relation("ZoneChildren")
+
+  providers ServiceProviderZone[]
+  primaryProviders ServiceProvider[] @relation("PrimaryZoneProviders")
+  bookings  Booking[]
+
+  createdAt DateTime @default(now())
+}
+
+model ServiceProvider {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  // Identité
+  name      String       // Nom du prestataire ou entreprise
+  bio       String?      // Présentation courte
+  type      ProviderType @default(INDIVIDUAL)
+  avatarUrl String?
+
+  // Contact
+  phone          String   // Principal canal de contact
+  whatsappNumber String?  // WhatsApp souvent préféré
+  alternatePhone String?
+
+  // Localisation & Zones
+  primaryZoneId Int?
+  primaryZone   ServiceZone? @relation("PrimaryZoneProviders", fields: [primaryZoneId], references: [id])
+  zones         ServiceProviderZone[]
+  hasVehicle    Boolean      @default(false)
+  maxRadiusKm   Int?
+
+  // Confiance & Réputation
+  verificationLevel VerificationLevel @default(NONE)
+  isVerified        Boolean           @default(false)
+  totalMissions     Int               @default(0)
+  avgRating         Float             @default(0)
+  responseTimeMin   Int?
+
+  // Disponibilité
+  availableDays      String[] // ex: ["LUNDI","MARDI"]
+  openTime           String?  // "08:00"
+  closeTime          String?  // "18:00"
+  respectsPrayerTime Boolean  @default(true)
+
+  // Toggle disponibilité temps réel
+  isAvailableNow Boolean @default(false)
+
+  services    Service[]
+  bookings    Booking[]
+  reviews     ServiceReview[]
+  wallet      ProviderWallet?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceProviderZone {
+  id         Int             @id @default(autoincrement())
+  providerId Int
+  provider   ServiceProvider @relation(fields: [providerId], references: [id])
+  zoneId     Int
+  zone       ServiceZone     @relation(fields: [zoneId], references: [id])
+  isPrimary  Boolean         @default(false)
+
+  @@unique([providerId, zoneId])
+}
+
+model ServiceCategory {
+  id        Int    @id @default(autoincrement())
+  name      String // ex: "Plomberie"
+  nameWolof String? // ex: "Plombier bi"
+  slug      String @unique
+  emoji     String? // ex: 🔧
+  iconUrl   String?
+  sortOrder Int    @default(0)
+  isActive  Boolean @default(true)
+
+  services Service[]
+
+  createdAt DateTime @default(now())
+}
+
+model Service {
+  id         Int             @id @default(autoincrement())
+  providerId Int
+  provider   ServiceProvider @relation(fields: [providerId], references: [id])
+
+  categoryId Int
+  category   ServiceCategory @relation(fields: [categoryId], references: [id])
+
+  name           String           // ex: "Réparation fuite d'eau"
+  description    String
+  price          Float?           // Prix indicatif
+  priceType      ServicePriceType
+  minPrice       Float?           // Fourchette basse
+  maxPrice       Float?           // Fourchette haute
+  requiresQuote  Boolean          @default(false)
+
+  images   String[] // URLs photos de réalisations
+  isActive Boolean  @default(true)
+
+  bookings  Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id         Int             @id @default(autoincrement())
+  serviceId  Int
+  service    Service         @relation(fields: [serviceId], references: [id])
+  customerId Int
+  customer   User            @relation("CustomerBookings", fields: [customerId], references: [id])
+  providerId Int
+  provider   ServiceProvider @relation(fields: [providerId], references: [id])
+
+  status BookingStatus @default(PENDING)
+
+  // Détails de la demande
+  scheduledDate   DateTime?
+  isDateFlexible  Boolean      @default(false)
+  address         String
+  zoneId          Int?
+  zone            ServiceZone? @relation(fields: [zoneId], references: [id])
+  description     String
+  urgency         UrgencyLevel @default(NORMAL)
+  images          String[]     // Photos envoyées par le client
+
+  // Devis & Paiement
+  quoteAmount    Float?
+  finalAmount    Float?
+  paymentMethod  ServicePaymentMethod?
+  isPaid         Boolean              @default(false)
+
+  // Contact
+  contactPhone String?
+  notes        String?
+
+  review     ServiceReview?
+  commission ServiceCommission?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceReview {
+  id         Int             @id @default(autoincrement())
+  bookingId  Int             @unique
+  booking    Booking         @relation(fields: [bookingId], references: [id])
+  providerId Int
+  provider   ServiceProvider @relation(fields: [providerId], references: [id])
+  customerId Int
+  customer   User            @relation("ServiceReviews", fields: [customerId], references: [id])
+
+  rating      Int  // 1 à 5
+  comment     String?
+  punctuality Int? // 1-5
+  quality     Int? // 1-5
+  priceValue  Int? // 1-5
+
+  createdAt DateTime @default(now())
+}
+
+model ProviderWallet {
+  id         Int             @id @default(autoincrement())
+  providerId Int             @unique
+  provider   ServiceProvider @relation(fields: [providerId], references: [id])
+
+  balance      Float @default(0)
+  totalEarned  Float @default(0)
+
+  commissions ServiceCommission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceCommission {
+  id        Int            @id @default(autoincrement())
+  bookingId Int            @unique
+  booking   Booking        @relation(fields: [bookingId], references: [id])
+  walletId  Int
+  wallet    ProviderWallet @relation(fields: [walletId], references: [id])
+
+  amount Float
+  type   ServiceCommissionType
+  status ServiceCommissionStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
 }
