@@ -33,18 +33,31 @@ import {
   createReviewController,
 } from "../controllers/services/bookingController";
 
+// Tracking controllers
+import {
+  logSearchController,
+  logLeadController,
+  logFeedbackController,
+} from "../controllers/services/trackingController";
+
 // Admin controllers
 import {
   adminListProvidersController,
   adminVerifyProviderController,
   adminListBookingsController,
   adminServicesStatsController,
+  adminExecutiveDashboardController,
+  adminProviderManagementController,
+  adminUpdateProviderStatusController,
+  adminQuickEditProviderController,
+  adminSearchAnalyticsController,
+  adminFieldAgentTrackerController,
 } from "../controllers/services/adminServicesController";
 
 const router = express.Router();
 
 // ════════════════════════════════════════════════════
-// PUBLIC ROUTES (no auth required)
+// PUBLIC & TRACKING ROUTES
 // ════════════════════════════════════════════════════
 
 /** GET /api/services/zones — All active zones */
@@ -61,6 +74,11 @@ router.get("/providers/:providerId", getProviderPublicController);
 
 /** GET /api/services/:id — Service detail */
 router.get("/:id", getServiceByIdController);
+
+/** Tracking Endpoints */
+router.post("/tracking/search", logSearchController);
+router.post("/tracking/lead", logLeadController);
+router.post("/tracking/feedback", logFeedbackController);
 
 // ════════════════════════════════════════════════════
 // CUSTOMER ROUTES (auth required)
@@ -113,16 +131,22 @@ router.patch("/provider/bookings/:bookingId/quote", requireAuth, sendQuoteContro
 // ADMIN ROUTES (auth + ADMIN role required)
 // ════════════════════════════════════════════════════
 
-/** GET  /api/services/admin/stats — Dashboard stats */
-router.get("/admin/stats", requireAuth, requireRole("ADMIN"), adminServicesStatsController);
+/** Executive Dashboard & Stats */
+router.get("/admin/stats", requireAuth, requireRole("ADMIN"), adminExecutiveDashboardController);
+router.get("/admin/dashboard-overview", requireAuth, requireRole("ADMIN"), adminExecutiveDashboardController);
 
-/** GET  /api/services/admin/providers — All providers */
-router.get("/admin/providers", requireAuth, requireRole("ADMIN"), adminListProvidersController);
+/** Provider Management */
+router.get("/admin/providers", requireAuth, requireRole("ADMIN"), adminProviderManagementController);
+router.patch("/admin/providers/:providerId/verify", requireAuth, requireRole("ADMIN"), adminUpdateProviderStatusController);
+router.put("/admin/providers/:providerId/quick-edit", requireAuth, requireRole("ADMIN"), adminQuickEditProviderController);
 
-/** PATCH /api/services/admin/providers/:providerId/verify — Verify a provider */
-router.patch("/admin/providers/:providerId/verify", requireAuth, requireRole("ADMIN"), adminVerifyProviderController);
+/** Search & Zone Analytics */
+router.get("/admin/search-analytics", requireAuth, requireRole("ADMIN"), adminSearchAnalyticsController);
 
-/** GET  /api/services/admin/bookings — All bookings */
+/** Field Acquisition Tracker */
+router.get("/admin/field-acquisition", requireAuth, requireRole("ADMIN"), adminFieldAgentTrackerController);
+
+/** Bookings */
 router.get("/admin/bookings", requireAuth, requireRole("ADMIN"), adminListBookingsController);
 
 export default router;

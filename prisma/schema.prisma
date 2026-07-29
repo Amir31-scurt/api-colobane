@@ -535,6 +535,18 @@ model Favorite {
 
 // --- Enums ---
 
+enum ProviderValidationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum OnboardingMode {
+  SELF_SIGNUP
+  FIELD_AGENT
+}
+
 enum ProviderType {
   INDIVIDUAL  // Artisan seul
   SMALL_TEAM  // Petite équipe (2-5 personnes)
@@ -650,10 +662,18 @@ model ServiceProvider {
   // Toggle disponibilité temps réel
   isAvailableNow Boolean @default(false)
 
-  services    Service[]
-  bookings    Booking[]
-  reviews     ServiceReview[]
-  wallet      ProviderWallet?
+  // Administration & Onboarding
+  validationStatus     ProviderValidationStatus @default(PENDING)
+  onboardingMode       OnboardingMode           @default(SELF_SIGNUP)
+  onboardedByAgentName String?
+  profileCompleteness  Int                      @default(0)
+
+  services     Service[]
+  bookings     Booking[]
+  reviews      ServiceReview[]
+  wallet       ProviderWallet?
+  leadLogs     ServiceLeadLog[]
+  feedbackLogs ServiceFeedbackLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -793,3 +813,45 @@ model ServiceCommission {
 
   createdAt DateTime @default(now())
 }
+
+model ServiceSearchLog {
+  id                 Int      @id @default(autoincrement())
+  searchQuery        String
+  selectedZoneId     Int?
+  selectedCategoryId Int?
+  resultsCount       Int      @default(0)
+  userId             Int?
+  sessionId          String?
+  timestamp          DateTime @default(now())
+
+  @@index([searchQuery])
+  @@index([timestamp])
+  @@index([resultsCount])
+}
+
+model ServiceLeadLog {
+  id          Int             @id @default(autoincrement())
+  providerId  Int
+  provider    ServiceProvider @relation(fields: [providerId], references: [id])
+  actionType  String          // "CALL" | "WHATSAPP"
+  sourcePage  String?         // "PROFILE", "CATALOG", "SEARCH"
+  userId      Int?
+  sessionId   String?
+  timestamp   DateTime        @default(now())
+
+  @@index([providerId, timestamp])
+}
+
+model ServiceFeedbackLog {
+  id            Int             @id @default(autoincrement())
+  providerId    Int
+  provider      ServiceProvider @relation(fields: [providerId], references: [id])
+  rating        Int             // 1 to 5
+  status        String          // "COMPLETED" | "PARTIAL" | "CANCELLED"
+  comment       String?
+  customerPhone String?
+  createdAt     DateTime        @default(now())
+
+  @@index([providerId])
+}
+
