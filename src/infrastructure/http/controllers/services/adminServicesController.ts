@@ -171,7 +171,7 @@ export async function adminProviderManagementController(req: Request, res: Respo
           primaryZone: true,
           zones: { include: { zone: true } },
           services: { select: { id: true, name: true } },
-          _count: { select: { leadLogs: true, bookings: true } },
+          _count: { select: { bookings: true, services: true, leadLogs: true } },
         },
       }),
       prisma.serviceProvider.count({ where }),
@@ -180,8 +180,9 @@ export async function adminProviderManagementController(req: Request, res: Respo
     const formattedProviders = providers.map((p: any) => ({
       ...p,
       profileCompletenessScore: computeProfileCompleteness(p),
-      leadCount: p._count?.leadLogs || 0,
       bookingCount: p._count?.bookings || 0,
+      serviceCount: p._count?.services || 0,
+      leadCount: p._count?.leadLogs || 0,
     }));
 
     return res.json({
@@ -477,3 +478,134 @@ export async function adminListBookingsController(req: Request, res: Response) {
 export async function adminServicesStatsController(req: Request, res: Response) {
   return adminExecutiveDashboardController(req, res);
 }
+
+/**
+ * VUE 5 : Admin Services Management (Offerings Catalog)
+ */
+export async function adminListServicesCatalogController(req: Request, res: Response) {
+  try {
+    const { q, categoryId, providerId, isActive, page = "1", pageSize = "20" } = req.query;
+    const pageNum = Math.max(1, Number(page));
+    const sizeNum = Math.max(1, Number(pageSize));
+    const skip = (pageNum - 1) * sizeNum;
+
+    const where: any = {};
+    if (q) {
+      const s = String(q).trim();
+      where.OR = [
+        { name: { contains: s, mode: "insensitive" } },
+        { description: { contains: s, mode: "insensitive" } },
+        { provider: { name: { contains: s, mode: "insensitive" } } },
+      ];
+    }
+    if (categoryId && categoryId !== "ALL") where.categoryId = Number(categoryId);
+    if (providerId) where.providerId = Number(providerId);
+    if (isActive !== undefined && isActive !== "ALL") where.isActive = isActive === "true";
+
+    const [items, total] = await Promise.all([
+      prisma.service.findMany({
+        where,
+        include: {
+          category: true,
+          provider: {
+            select: { id: true, name: true, phone: true, isVerified: true, avatarUrl: true, primaryZone: true },
+          },
+          _count: { select: { bookings: true } },
+        },
+        skip,
+        take: sizeNum,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.service.count({ where }),
+    ]);
+
+    return res.json({
+      items,
+      total,
+      page: pageNum,
+      pageSize: sizeNum,
+      totalPages: Math.ceil(total / sizeNum),
+    });
+  } catch (err) {
+    console.error("[adminListServicesCatalog]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
+
+export async function adminToggleServiceController(req: Request, res: Response) {
+  try {
+    const serviceId = Number(req.params.serviceId);
+    const existing = await prisma.service.findUnique({ where: { id: serviceId } });
+    if (!existing) return res.status(404).json({ error: "SERVICE_NOT_FOUND" });
+
+    const updated = await prisma.service.update({
+      where: { id: serviceId },
+      data: { isActive: !existing.isActive },
+    });
+
+    return res.json(updated);
+  } catch (err) {
+    console.error("[adminToggleService]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
+
+export async function adminQuickEditServiceController(req: Request, res: Response) {
+  try {
+    const serviceId = Number(req.params.serviceId);
+    const { name, description, priceType, price, minPrice, maxPrice, requiresQuote, categoryId, isActive } = req.body;
+
+    const updated = await prisma.service.update({
+      where: { id: serviceId },
+      data: {
+        ...(name && { name }),
+        ...(description !== undefined && { description }),
+        ...(priceType && { priceType }),
+        ...(price !== undefined && { price: price ? Number(price) : null }),
+        ...(minPrice !== undefined && { minPrice: minPrice ? Number(minPrice) : null }),
+        ...(maxPrice !== undefined && { maxPrice: maxPrice ? Number(maxPrice) : null }),
+        ...(requiresQuote !== undefined && { requiresQuote: Boolean(requiresQuote) }),
+        ...(categoryId && { categoryId: Number(categoryId) }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+      },
+      include: { category: true, provider: true },
+    });
+
+    return res.json(updated);
+  } catch (err) {
+    console.error("[adminQuickEditService]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
+
+export async function adminCreateServiceController(req: Request, res: Response) {
+  try {
+    const { providerId, categoryId, name, description, priceType, price, minPrice, maxPrice, requiresQuote } = req.body;
+
+    if (!providerId || !categoryId || !name) {
+      return res.status(400).json({ error: "MISSING_REQUIRED_FIELDS", message: "providerId, categoryId et name sont requis." });
+    }
+
+    const created = await prisma.service.create({
+      data: {
+        providerId: Number(providerId),
+        categoryId: Number(categoryId),
+        name: String(name).trim(),
+        description: description ? String(description).trim() : "",
+        priceType: priceType || "QUOTE",
+        price: price ? Number(price) : null,
+        minPrice: minPrice ? Number(minPrice) : null,
+        maxPrice: maxPrice ? Number(maxPrice) : null,
+        requiresQuote: Boolean(requiresQuote),
+        isActive: true,
+      },
+      include: { category: true, provider: true },
+    });
+
+    return res.status(201).json(created);
+  } catch (err) {
+    console.error("[adminCreateService]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+}
+

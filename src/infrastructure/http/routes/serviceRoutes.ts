@@ -52,6 +52,10 @@ import {
   adminQuickEditProviderController,
   adminSearchAnalyticsController,
   adminFieldAgentTrackerController,
+  adminListServicesCatalogController,
+  adminToggleServiceController,
+  adminQuickEditServiceController,
+  adminCreateServiceController,
 } from "../controllers/services/adminServicesController";
 
 const router = express.Router();
@@ -145,6 +149,12 @@ router.get("/admin/search-analytics", requireAuth, requireRole("ADMIN"), adminSe
 
 /** Field Acquisition Tracker */
 router.get("/admin/field-acquisition", requireAuth, requireRole("ADMIN"), adminFieldAgentTrackerController);
+
+/** Offerings & Services Catalog Management */
+router.get("/admin/services-catalog", requireAuth, requireRole("ADMIN"), adminListServicesCatalogController);
+router.patch("/admin/services-catalog/:serviceId/toggle", requireAuth, requireRole("ADMIN"), adminToggleServiceController);
+router.put("/admin/services-catalog/:serviceId", requireAuth, requireRole("ADMIN"), adminQuickEditServiceController);
+router.post("/admin/services-catalog", requireAuth, requireRole("ADMIN"), adminCreateServiceController);
 
 /** Bookings */
 router.get("/admin/bookings", requireAuth, requireRole("ADMIN"), adminListBookingsController);
