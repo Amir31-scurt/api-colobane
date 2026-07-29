@@ -28,6 +28,11 @@ export async function adminExecutiveDashboardController(req: Request, res: Respo
       totalLeadsAllTime,
       recentSearches,
       recentLeads,
+      totalBookings,
+      completedBookings,
+      recentProvidersList,
+      recentBookingsList,
+      totalCommissionsResult,
     ] = await Promise.all([
       prisma.serviceProvider.count(),
       prisma.serviceProvider.count({ where: { validationStatus: "PENDING" as any } }),
@@ -65,6 +70,28 @@ export async function adminExecutiveDashboardController(req: Request, res: Respo
         where: { timestamp: { gte: thirtyDaysAgo } },
         select: { timestamp: true },
       }).catch(() => []),
+      prisma.booking.count().catch(() => 0),
+      prisma.booking.count({ where: { status: "COMPLETED" } }).catch(() => 0),
+      prisma.serviceProvider.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          primaryZone: true,
+          _count: { select: { services: true } },
+        },
+      }).catch(() => []),
+      prisma.booking.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          service: { select: { name: true } },
+          customer: { select: { name: true, phone: true } },
+          provider: { select: { name: true } },
+        },
+      }).catch(() => []),
+      prisma.serviceCommission.aggregate({
+        _sum: { amount: true },
+      }).catch(() => ({ _sum: { amount: 0 } })),
     ]);
 
     // Calculate Average Completeness Score
@@ -116,7 +143,12 @@ export async function adminExecutiveDashboardController(req: Request, res: Respo
         leadsToday: totalLeadsToday,
         totalLeads: totalLeadsAllTime,
         coverageRate,
+        totalBookings,
+        completedBookings,
+        totalRevenues: totalCommissionsResult?._sum?.amount || 0,
       },
+      recentProviders: recentProvidersList,
+      recentBookings: recentBookingsList,
       activityChartData,
     });
   } catch (err) {
@@ -608,4 +640,121 @@ export async function adminCreateServiceController(req: Request, res: Response) 
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 }
+
+// ─── Categories & Zones CRUD ──────────────────────────────────────────
+
+export async function adminCreateCategoryController(req: Request, res: Response) {
+  try {
+    const { name, nameWolof, slug, emoji, iconUrl, sortOrder, isActive } = req.body;
+    if (!name) return res.status(400).json({ error: "NAME_REQUIRED", message: "Le nom est requis" });
+    const categorySlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    const category = await prisma.serviceCategory.create({
+      data: {
+        name: String(name).trim(),
+        nameWolof: nameWolof ? String(nameWolof).trim() : null,
+        slug: categorySlug,
+        emoji: emoji || "🛠️",
+        iconUrl: iconUrl || null,
+        sortOrder: sortOrder ? Number(sortOrder) : 0,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+      },
+    });
+    return res.status(201).json(category);
+  } catch (err: any) {
+    console.error("[adminCreateCategory]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+}
+
+export async function adminUpdateCategoryController(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id);
+    const { name, nameWolof, slug, emoji, iconUrl, sortOrder, isActive } = req.body;
+
+    const updated = await prisma.serviceCategory.update({
+      where: { id },
+      data: {
+        ...(name && { name: String(name).trim() }),
+        ...(nameWolof !== undefined && { nameWolof: nameWolof ? String(nameWolof).trim() : null }),
+        ...(slug && { slug }),
+        ...(emoji !== undefined && { emoji }),
+        ...(iconUrl !== undefined && { iconUrl }),
+        ...(sortOrder !== undefined && { sortOrder: Number(sortOrder) }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+      },
+    });
+    return res.json(updated);
+  } catch (err: any) {
+    console.error("[adminUpdateCategory]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+}
+
+export async function adminDeleteCategoryController(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id);
+    await prisma.serviceCategory.delete({ where: { id } });
+    return res.json({ message: "Catégorie supprimée avec succès" });
+  } catch (err: any) {
+    console.error("[adminDeleteCategory]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+}
+
+export async function adminCreateZoneController(req: Request, res: Response) {
+  try {
+    const { name, slug, city, parentId, isActive } = req.body;
+    if (!name) return res.status(400).json({ error: "NAME_REQUIRED", message: "Le nom de la zone est requis" });
+    const zoneSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    const zone = await prisma.serviceZone.create({
+      data: {
+        name: String(name).trim(),
+        slug: zoneSlug,
+        city: city ? String(city).trim() : "Dakar",
+        parentId: parentId ? Number(parentId) : null,
+        isActive: isActive !== undefined ? Boolean(isActive) : true,
+      },
+    });
+    return res.status(201).json(zone);
+  } catch (err: any) {
+    console.error("[adminCreateZone]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+}
+
+export async function adminUpdateZoneController(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id);
+    const { name, slug, city, parentId, isActive } = req.body;
+
+    const updated = await prisma.serviceZone.update({
+      where: { id },
+      data: {
+        ...(name && { name: String(name).trim() }),
+        ...(slug && { slug }),
+        ...(city && { city: String(city).trim() }),
+        ...(parentId !== undefined && { parentId: parentId ? Number(parentId) : null }),
+        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+      },
+    });
+    return res.json(updated);
+  } catch (err: any) {
+    console.error("[adminUpdateZone]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+}
+
+export async function adminDeleteZoneController(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id);
+    await prisma.serviceZone.delete({ where: { id } });
+    return res.json({ message: "Zone supprimée avec succès" });
+  } catch (err: any) {
+    console.error("[adminDeleteZone]", err);
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+}
+
 

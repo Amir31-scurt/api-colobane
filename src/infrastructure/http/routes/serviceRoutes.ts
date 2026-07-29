@@ -56,6 +56,12 @@ import {
   adminToggleServiceController,
   adminQuickEditServiceController,
   adminCreateServiceController,
+  adminCreateCategoryController,
+  adminUpdateCategoryController,
+  adminDeleteCategoryController,
+  adminCreateZoneController,
+  adminUpdateZoneController,
+  adminDeleteZoneController,
 } from "../controllers/services/adminServicesController";
 
 const router = express.Router();
@@ -156,7 +162,13 @@ router.patch("/admin/services-catalog/:serviceId/toggle", requireAuth, requireRo
 router.put("/admin/services-catalog/:serviceId", requireAuth, requireRole("ADMIN"), adminQuickEditServiceController);
 router.post("/admin/services-catalog", requireAuth, requireRole("ADMIN"), adminCreateServiceController);
 
-/** Bookings */
-router.get("/admin/bookings", requireAuth, requireRole("ADMIN"), adminListBookingsController);
+/** Categories & Zones CRUD */
+router.post("/admin/categories", requireAuth, requireRole("ADMIN"), adminCreateCategoryController);
+router.put("/admin/categories/:id", requireAuth, requireRole("ADMIN"), adminUpdateCategoryController);
+router.delete("/admin/categories/:id", requireAuth, requireRole("ADMIN"), adminDeleteCategoryController);
+
+router.post("/admin/zones", requireAuth, requireRole("ADMIN"), adminCreateZoneController);
+router.put("/admin/zones/:id", requireAuth, requireRole("ADMIN"), adminUpdateZoneController);
+router.delete("/admin/zones/:id", requireAuth, requireRole("ADMIN"), adminDeleteZoneController);
 
 export default router;
