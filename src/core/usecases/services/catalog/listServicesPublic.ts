@@ -21,21 +21,47 @@ export async function listServicesPublicUsecase(filters: ListServicesFilter) {
     ...(filters.isVerified && { isVerified: true }),
     ...(filters.isAvailableNow && { isAvailableNow: true }),
     ...(filters.zoneId && {
-      zones: { some: { zoneId: filters.zoneId } },
+      OR: [
+        { primaryZoneId: filters.zoneId },
+        { zones: { some: { zoneId: filters.zoneId } } },
+      ],
     }),
   };
+
+  const AND_conditions: any[] = [];
+
+  if (filters.categoryId) {
+    AND_conditions.push({ categoryId: filters.categoryId });
+  }
+
+  if (filters.q && filters.q.trim()) {
+    const rawSearch = filters.q.trim();
+    // Split search into individual words (e.g. "tailleur parcelle" => ["tailleur", "parcelle"])
+    const terms = rawSearch.split(/\s+/).filter(Boolean);
+
+    for (const term of terms) {
+      AND_conditions.push({
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { description: { contains: term, mode: "insensitive" } },
+          { category: { name: { contains: term, mode: "insensitive" } } },
+          { category: { nameWolof: { contains: term, mode: "insensitive" } } },
+          { category: { slug: { contains: term, mode: "insensitive" } } },
+          { provider: { name: { contains: term, mode: "insensitive" } } },
+          { provider: { bio: { contains: term, mode: "insensitive" } } },
+          { provider: { primaryZone: { name: { contains: term, mode: "insensitive" } } } },
+          { provider: { primaryZone: { city: { contains: term, mode: "insensitive" } } } },
+          { provider: { zones: { some: { zone: { name: { contains: term, mode: "insensitive" } } } } } },
+          { provider: { zones: { some: { zone: { city: { contains: term, mode: "insensitive" } } } } } },
+        ],
+      });
+    }
+  }
 
   const serviceWhere: any = {
     isActive: true,
     provider: providerWhere,
-    ...(filters.categoryId && { categoryId: filters.categoryId }),
-    ...(filters.q && {
-      OR: [
-        { name: { contains: filters.q, mode: "insensitive" } },
-        { description: { contains: filters.q, mode: "insensitive" } },
-        { provider: { name: { contains: filters.q, mode: "insensitive" } } },
-      ],
-    }),
+    ...(AND_conditions.length > 0 && { AND: AND_conditions }),
   };
 
   const [items, total] = await Promise.all([

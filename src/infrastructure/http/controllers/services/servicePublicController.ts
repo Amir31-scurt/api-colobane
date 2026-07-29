@@ -62,9 +62,9 @@ export async function getServiceByIdController(req: Request, res: Response) {
 
 export async function getProviderPublicController(req: Request, res: Response) {
   try {
-    const id = parseInt(req.params.providerId);
-    if (isNaN(id)) return res.status(400).json({ error: "INVALID_ID" });
-    const provider = await getProviderPublicUsecase(id);
+    const param = req.params.providerId;
+    if (!param) return res.status(400).json({ error: "PROVIDER_ID_REQUIRED" });
+    const provider = await getProviderPublicUsecase(param);
     return res.json(provider);
   } catch (err: any) {
     if (err.message === "PROVIDER_NOT_FOUND") {

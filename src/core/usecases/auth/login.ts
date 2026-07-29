@@ -8,10 +8,22 @@ interface LoginInput {
 }
 
 export async function loginUser(input: LoginInput) {
-  const isEmail = input.identifier.includes('@');
+  const cleanIdentifier = input.identifier ? input.identifier.trim() : "";
+  const isEmail = cleanIdentifier.includes('@');
   
+  const rawDigits = cleanIdentifier.replace(/[\s\-\+\(\)]/g, '');
+  const withSnPrefix = rawDigits.startsWith('221') ? `+${rawDigits}` : `+221${rawDigits}`;
+
   const user = await prisma.user.findFirst({
-    where: isEmail ? { email: input.identifier } : { phone: input.identifier }
+    where: isEmail
+      ? { email: { equals: cleanIdentifier, mode: 'insensitive' } }
+      : {
+          OR: [
+            { phone: cleanIdentifier },
+            { phone: rawDigits },
+            { phone: withSnPrefix },
+          ],
+        },
   });
 
   if (!user) {
