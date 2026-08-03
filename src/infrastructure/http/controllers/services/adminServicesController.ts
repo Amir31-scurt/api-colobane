@@ -587,19 +587,36 @@ export async function adminQuickEditServiceController(req: Request, res: Respons
     const serviceId = Number(req.params.serviceId);
     const { name, description, priceType, price, minPrice, maxPrice, requiresQuote, categoryId, isActive } = req.body;
 
+    const updateData: any = {};
+    if (name) updateData.name = String(name).trim();
+    if (description !== undefined) updateData.description = String(description).trim();
+    if (priceType) updateData.priceType = priceType;
+
+    const finalPriceType = priceType || (await prisma.service.findUnique({ where: { id: serviceId } }))?.priceType;
+    const isQuote = finalPriceType === "QUOTE" || (requiresQuote !== undefined ? Boolean(requiresQuote) : false);
+
+    if (requiresQuote !== undefined) {
+      updateData.requiresQuote = Boolean(requiresQuote);
+    } else if (priceType === "QUOTE") {
+      updateData.requiresQuote = true;
+    }
+
+    if (isQuote) {
+      updateData.price = null;
+      updateData.minPrice = null;
+      updateData.maxPrice = null;
+    } else {
+      if (price !== undefined) updateData.price = (price !== null && price !== "") ? Number(price) : null;
+      if (minPrice !== undefined) updateData.minPrice = (minPrice !== null && minPrice !== "") ? Number(minPrice) : null;
+      if (maxPrice !== undefined) updateData.maxPrice = (maxPrice !== null && maxPrice !== "") ? Number(maxPrice) : null;
+    }
+
+    if (categoryId) updateData.categoryId = Number(categoryId);
+    if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+
     const updated = await prisma.service.update({
       where: { id: serviceId },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-        ...(priceType && { priceType }),
-        ...(price !== undefined && { price: price ? Number(price) : null }),
-        ...(minPrice !== undefined && { minPrice: minPrice ? Number(minPrice) : null }),
-        ...(maxPrice !== undefined && { maxPrice: maxPrice ? Number(maxPrice) : null }),
-        ...(requiresQuote !== undefined && { requiresQuote: Boolean(requiresQuote) }),
-        ...(categoryId && { categoryId: Number(categoryId) }),
-        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
-      },
+      data: updateData,
       include: { category: true, provider: true },
     });
 
@@ -618,17 +635,20 @@ export async function adminCreateServiceController(req: Request, res: Response) 
       return res.status(400).json({ error: "MISSING_REQUIRED_FIELDS", message: "providerId, categoryId et name sont requis." });
     }
 
+    const pType = priceType || "QUOTE";
+    const isQuote = pType === "QUOTE" || Boolean(requiresQuote);
+
     const created = await prisma.service.create({
       data: {
         providerId: Number(providerId),
         categoryId: Number(categoryId),
         name: String(name).trim(),
         description: description ? String(description).trim() : "",
-        priceType: priceType || "QUOTE",
-        price: price ? Number(price) : null,
-        minPrice: minPrice ? Number(minPrice) : null,
-        maxPrice: maxPrice ? Number(maxPrice) : null,
-        requiresQuote: Boolean(requiresQuote),
+        priceType: pType,
+        price: (!isQuote && price !== undefined && price !== null && price !== "") ? Number(price) : null,
+        minPrice: (!isQuote && minPrice !== undefined && minPrice !== null && minPrice !== "") ? Number(minPrice) : null,
+        maxPrice: (!isQuote && maxPrice !== undefined && maxPrice !== null && maxPrice !== "") ? Number(maxPrice) : null,
+        requiresQuote: isQuote,
         isActive: true,
       },
       include: { category: true, provider: true },
