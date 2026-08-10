@@ -5,7 +5,17 @@ export async function getProductBySlugUsecase(slug: string) {
     where: { slug },
     include: {
       categories: true,
-      brand: true,
+      brand: {
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              phone: true
+            }
+          }
+        }
+      },
       variants: true
     }
   });

@@ -3,7 +3,20 @@ import { prisma } from "../../../infrastructure/prisma/prismaClient";
 export async function listProductsUsecase() {
   return prisma.product.findMany({
     where: { isActive: true },
-    include: { categories: true, brand: true },
+    include: {
+      categories: true,
+      brand: {
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              phone: true
+            }
+          }
+        }
+      }
+    },
     orderBy: { createdAt: "desc" }
   });
 }

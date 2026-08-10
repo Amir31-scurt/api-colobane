@@ -32,7 +32,20 @@ export async function searchAllUsecase(query: string): Promise<SearchResult> {
         ],
         isActive: true
       },
-      include: { brand: true, categories: true },
+      include: {
+        brand: {
+          include: {
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                phone: true
+              }
+            }
+          }
+        },
+        categories: true
+      },
       take: 50
     }),
     prisma.category.findMany({

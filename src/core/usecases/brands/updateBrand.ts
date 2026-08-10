@@ -5,6 +5,8 @@ interface UpdateBrandInput {
   userId: number; // For authorization check
   name?: string;
   description?: string;
+  phone?: string;
+  whatsappNumber?: string;
   primaryColor?: string;
   secondaryColor?: string;
   logoUrl?: string;

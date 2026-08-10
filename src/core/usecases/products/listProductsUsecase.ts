@@ -50,7 +50,17 @@ export async function listProductsUsecase({
       include: {
         images: true,
         variants: true,
-        brand: true,
+        brand: {
+          include: {
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                phone: true
+              }
+            }
+          }
+        },
         categories: true,
       },
       orderBy: {

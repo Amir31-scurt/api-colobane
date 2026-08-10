@@ -48,7 +48,7 @@ export async function updateMyBrandController(req: AuthRequest, res: Response) {
       return res.status(404).json({ error: "Vous n'avez pas encore de boutique." });
     }
 
-    const allowed = ["name", "description", "primaryColor", "secondaryColor", "website", "template"];
+    const allowed = ["name", "description", "phone", "whatsappNumber", "primaryColor", "secondaryColor", "website", "template"];
     const updates: Record<string, any> = {};
     for (const key of allowed) {
       if (req.body[key] !== undefined) {

@@ -52,7 +52,17 @@ export async function advancedSearchProductsUsecase(input: SearchInput) {
     },
     include: {
       images: true,
-      brand: true,
+      brand: {
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              phone: true
+            }
+          }
+        }
+      },
       categories: true,
       promotions: true,
       variants: true

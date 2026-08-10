@@ -10,7 +10,16 @@ export async function getProductUsecase(slug: string) {
       categories: true,
       promotions: true,
       brand: {
-        include: { promotions: true }
+        include: {
+          promotions: true,
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              phone: true
+            }
+          }
+        }
       }
     }
   });

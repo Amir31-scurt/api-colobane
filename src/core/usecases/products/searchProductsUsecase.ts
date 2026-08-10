@@ -11,7 +11,17 @@ export async function searchProductsUsecase(q: string) {
     },
     include: {
       images: true,
-      brand: true
+      brand: {
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              phone: true
+            }
+          }
+        }
+      }
     }
   });
 }

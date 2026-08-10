@@ -208,6 +208,8 @@ model Brand {
   name           String
   slug           String      @unique
   description    String?
+  phone          String?
+  whatsappNumber String?
   primaryColor   String?
   secondaryColor String?
   logoUrl        String?

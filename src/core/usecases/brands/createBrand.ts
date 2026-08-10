@@ -6,6 +6,8 @@ interface CreateBrandInput {
   slug: string;
   ownerId: number;      // ← ajouté
   description?: string;
+  phone?: string;
+  whatsappNumber?: string;
   primaryColor?: string;
   secondaryColor?: string;
   logoUrl?: string;
@@ -26,6 +28,8 @@ export async function createBrandUsecase(input: CreateBrandInput) {
       slug: input.slug,
       ownerId: input.ownerId,    // ← propriété obligatoire
       description: input.description,
+      phone: input.phone,
+      whatsappNumber: input.whatsappNumber,
       primaryColor: input.primaryColor,
       secondaryColor: input.secondaryColor,
       logoUrl: input.logoUrl
