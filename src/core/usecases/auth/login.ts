@@ -10,9 +10,12 @@ interface LoginInput {
 export async function loginUser(input: LoginInput) {
   const cleanIdentifier = input.identifier ? input.identifier.trim() : "";
   const isEmail = cleanIdentifier.includes('@');
-  
+
+  // Build all possible phone variants to search
   const rawDigits = cleanIdentifier.replace(/[\s\-\+\(\)]/g, '');
-  const withSnPrefix = rawDigits.startsWith('221') ? `+${rawDigits}` : `+221${rawDigits}`;
+  const withoutPrefix = rawDigits.startsWith('221') ? rawDigits.slice(3) : rawDigits;
+  const withPrefix = rawDigits.startsWith('221') ? rawDigits : `221${rawDigits}`;
+  const withPlusPrefix = `+${withPrefix}`;
 
   const user = await prisma.user.findFirst({
     where: isEmail
@@ -21,7 +24,9 @@ export async function loginUser(input: LoginInput) {
           OR: [
             { phone: cleanIdentifier },
             { phone: rawDigits },
-            { phone: withSnPrefix },
+            { phone: withPrefix },
+            { phone: withPlusPrefix },
+            { phone: withoutPrefix },
           ],
         },
   });
