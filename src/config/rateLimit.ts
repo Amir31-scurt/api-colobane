@@ -47,3 +47,15 @@ export const searchRateLimiter = rateLimit({
     message: "Trop de recherches consécutives. Ralentissez un instant.",
   },
 });
+
+// AI Chat rate limiter (anti-quota exhaustion & spam on Gemini)
+export const aiChatRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 messages max par minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: "error",
+    message: "Kolu a reçu beaucoup de messages d'un coup ! Veuillez patienter un instant avant de renvoyer un message. ⏳",
+  },
+});
