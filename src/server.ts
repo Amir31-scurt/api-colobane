@@ -1,3 +1,6 @@
+// ⚠️ Must be FIRST — loads .env before any module-level code runs (e.g. jwt.ts secret check)
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -30,12 +33,6 @@ import favoriteRoutes from "./infrastructure/http/routes/favoriteRoutes";
 import contactRoutes from "./infrastructure/http/routes/contactRoutes";
 import aiRoutes from "./infrastructure/http/routes/aiRoutes";
 import serviceRoutes from "./infrastructure/http/routes/serviceRoutes";
-
-
-if (process.env.NODE_ENV !== "production") {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require("dotenv").config();
-}
 const app = express();
 
 app.set('trust proxy', 1);
@@ -48,11 +45,13 @@ app.use(apiRateLimiter);
 // If specific routes need raw body (like stripe), they should be mounted before this or handle it specifically.
 app.use(
   express.json({
+    limit: "10mb",
     verify: (req, res, buf) => {
       (req as any).rawBody = buf.toString();
     }
   })
 );
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 app.use((req, res, next) => {
   console.log(`📡 [${new Date().toISOString()}] ${req.method} ${req.url}`);

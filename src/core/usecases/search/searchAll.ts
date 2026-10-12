@@ -7,11 +7,16 @@ export interface SearchResult {
 }
 
 export async function searchAllUsecase(query: string): Promise<SearchResult> {
-  if (!query || query.trim().length === 0) {
+  if (!query || typeof query !== "string") {
     return { brands: [], products: [], categories: [] };
   }
 
-  const q = query.trim();
+  // Sanitize: strip control characters and cap at 80 characters max to prevent DB memory/CPU exhaustion
+  const q = query.replace(/[\x00-\x1F\x7F]/g, "").trim().slice(0, 80);
+
+  if (q.length === 0) {
+    return { brands: [], products: [], categories: [] };
+  }
 
   const [brands, products, categories] = await Promise.all([
     prisma.brand.findMany({

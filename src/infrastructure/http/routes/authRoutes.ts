@@ -16,6 +16,7 @@ import {
 } from "../controllers/authController";
 import { authRequired } from "../middlewares/authMiddleware";
 import { requireAuth } from "../middlewares/auth/requireAuth";
+import { authRateLimiter, otpRateLimiter } from "../../../config/rateLimit";
 
 const router = express.Router();
 
@@ -27,18 +28,18 @@ const router = express.Router();
  */
 
 // Inscription classique (email/pass)
-router.post("/register", registerController);
+router.post("/register", authRateLimiter, registerController);
 
 // Connexion classique (email/pass)
-router.post("/login", loginController);
+router.post("/login", authRateLimiter, loginController);
 
 // Réinitialisation de mot de passe
-router.post("/forgot-password", requestPasswordResetController);
-router.post("/reset-password", resetPasswordController);
+router.post("/forgot-password", authRateLimiter, requestPasswordResetController);
+router.post("/reset-password", authRateLimiter, resetPasswordController);
 
 // OTP (pour app mobile sans email/pass ou 2FA)
-router.post("/otp/request", requestOtpController);
-router.post("/otp/verify", verifyOtpController);
+router.post("/otp/request", otpRateLimiter, requestOtpController);
+router.post("/otp/verify", authRateLimiter, verifyOtpController);
 
 // Profile
 router.get("/me", requireAuth, meController);

@@ -150,4 +150,10 @@ router.post("/finances/payouts", requireRole("ADMIN"), createPayout);
  */
 router.get("/finances/export", requireRole("ADMIN"), exportFinancesCsv);
 
+// ── Post-publish brand review (replaces pre-approval gate) ──────────────────
+import { adminLiveReviewController, adminSuspendBrandController } from "../controllers/admin/adminReviewController";
+
+router.get("/brands/live-review", requireRole("ADMIN"), adminLiveReviewController);
+router.post("/brands/:id/suspend", requireRole("ADMIN"), adminSuspendBrandController);
+
 export default router;

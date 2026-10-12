@@ -13,6 +13,7 @@ import {
   approveBrandController,
   rejectBrandController,
   disapproveBrandController,
+  toggleCertifyBrandController,
   listPendingBrandsController,
   listAllBrandsController
 } from "../controllers/admin/adminBrandController";
@@ -195,6 +196,7 @@ router.post("/:brandId/reject", requireAuth, requireRole("ADMIN"), rejectBrandCo
  *         description: Marque désapprouvée (masquée, propriétaire repasse USER)
  */
 router.post("/:brandId/disapprove", requireAuth, requireRole("ADMIN"), disapproveBrandController);
+router.post("/:brandId/certify", requireAuth, requireRole("ADMIN"), toggleCertifyBrandController);
 
 /**
  * @swagger

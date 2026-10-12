@@ -262,6 +262,44 @@ export async function disapproveBrandController(req: Request, res: Response) {
     }
 }
 
+/**
+ * Toggle certification status for a brand (Admin certification badge)
+ */
+export async function toggleCertifyBrandController(req: Request, res: Response) {
+    try {
+        const brandId = Number(req.params.brandId);
+
+        if (!Number.isFinite(brandId)) {
+            return res.status(400).json({ error: "INVALID_BRAND_ID" });
+        }
+
+        const brand = await prisma.brand.findUnique({
+            where: { id: brandId }
+        });
+
+        if (!brand) {
+            return res.status(404).json({ error: "BRAND_NOT_FOUND" });
+        }
+
+        const nextCertified = !brand.isCertified;
+
+        const updatedBrand = await prisma.brand.update({
+            where: { id: brandId },
+            data: {
+                isCertified: nextCertified
+            }
+        });
+
+        return res.json({
+            message: nextCertified ? "Brand certified successfully" : "Brand decertified successfully",
+            brand: updatedBrand
+        });
+    } catch (err: any) {
+        console.error("[toggleCertifyBrand]", err);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+}
+
 // =====================
 //    EMAIL TEMPLATES
 // =====================

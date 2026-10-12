@@ -11,21 +11,21 @@ export type JwtPayload = {
 const JWT_SECRET = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-    console.error("❌ [JWT] No secret found! Set JWT_ACCESS_SECRET in your .env");
-    throw new Error("Missing JWT_ACCESS_SECRET or JWT_SECRET in env");
+  console.error("❌ [JWT] No secret found! Set JWT_ACCESS_SECRET in your .env");
+  throw new Error("Missing JWT_ACCESS_SECRET or JWT_SECRET in env");
 }
 
 export function signAccessToken(
-    payload: Omit<JwtPayload, "type">,
-    expiresIn: SignOptions["expiresIn"] = "2h"
-  ) {
-    const token = jwt.sign(
-      { ...payload, type: "access" },
-      JWT_SECRET as string,
-      { expiresIn }
-    );
-  
-    return token;
+  payload: Omit<JwtPayload, "type">,
+  expiresIn: SignOptions["expiresIn"] = (process.env.JWT_ACCESS_EXPIRES_IN || process.env.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"]
+) {
+  const token = jwt.sign(
+    { ...payload, type: "access" },
+    JWT_SECRET as string,
+    { expiresIn }
+  );
+
+  return token;
 }
 
 export function verifyAccessToken(token: string): JwtPayload {

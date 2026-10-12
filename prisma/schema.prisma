@@ -51,6 +51,9 @@ model User {
   customerBookings Booking[]        @relation("CustomerBookings")
   serviceReviews   ServiceReview[]  @relation("ServiceReviews")
 
+  // Chat onboarding
+  sellerOnboarding SellerOnboarding?
+
 }
 
 model EmailVerificationToken {
@@ -216,6 +219,7 @@ model Brand {
   website        String?
   bannerUrl      String?
   isActive       Boolean     @default(false) // Changed: inactive until approved
+  isCertified    Boolean     @default(false) // Certification officielle Colobane
   createdAt      DateTime    @default(now())
   
   // Seller approval workflow
@@ -855,5 +859,46 @@ model ServiceFeedbackLog {
   createdAt     DateTime        @default(now())
 
   @@index([providerId])
+}
+
+// ============================================================
+// SELLER CHAT ONBOARDING
+// ============================================================
+
+model SellerOnboarding {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  // --- Collected store fields ---
+  ownerName    String?
+  brandName    String?
+  activity     String?   // Free-form description of what they sell/offer
+  categorySlug String?   // Matched Category.slug
+  location     String?   // Free-form location text (e.g. "Pikine")
+  contactPhone String?   // The WhatsApp/phone contact for the store
+
+  logoUrl      String?   // Optional, skippable
+
+  // --- Collected first-product fields ---
+  productName  String?
+  productPrice Float?
+  productStock Int?
+  productImageUrl String?
+
+  // --- Onboarding status ---
+  brandId         Int?     // Set once the Brand row is created
+  firstProductId  Int?     // Set once the first Product row is created
+  publishedAt     DateTime? // Set when the brand goes live
+
+  // Chat history for UI replay (last 40 messages max, stored as JSON array)
+  chatMessages Json @default("[]")
+
+  // --- Coach-mark dismissal flags ---
+  coachMarkBoutiqueShown  Boolean @default(false)
+  coachMarkProductsShown  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 

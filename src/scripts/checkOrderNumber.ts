@@ -9,18 +9,18 @@ async function checkOrderNumberColumn() {
       WHERE table_name = 'Order' 
       AND column_name = 'orderNumber';
     `;
-    
+
     console.log('Query result:', result);
-    
+
     if (Array.isArray(result) && result.length > 0) {
       console.log('✅ orderNumber column EXISTS in Order table');
-      
+
       // Check if any orders have orderNumber
       const ordersWithNumber = await prisma.$queryRaw`
         SELECT COUNT(*) as count FROM "Order" WHERE "orderNumber" IS NOT NULL;
       `;
       console.log('Orders with orderNumber:', ordersWithNumber);
-      
+
       // Check total orders
       const totalOrders = await prisma.$queryRaw`
         SELECT COUNT(*) as count FROM "Order";
@@ -29,7 +29,7 @@ async function checkOrderNumberColumn() {
     } else {
       console.log('❌ orderNumber column DOES NOT exist in Order table');
     }
-    
+
     await prisma.$disconnect();
   } catch (error) {
     console.error('Error checking column:', error);

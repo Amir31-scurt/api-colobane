@@ -1,8 +1,9 @@
 // src/core/services/tokenService.ts
 import jwt from "jsonwebtoken";
 
-const ACCESS_TOKEN_EXPIRES_IN = "15m"; // à ajuster si besoin
-const REFRESH_TOKEN_EXPIRES_IN = "30d";
+// Durées des tokens : 7 jours pour l'access token (idéal pour marketplace) et 30 jours pour le refresh token
+const ACCESS_TOKEN_EXPIRES_IN = (process.env.JWT_ACCESS_EXPIRES_IN || process.env.JWT_EXPIRES_IN || "7d") as jwt.SignOptions["expiresIn"];
+const REFRESH_TOKEN_EXPIRES_IN = (process.env.JWT_REFRESH_EXPIRES_IN || "30d") as jwt.SignOptions["expiresIn"];
 
 interface JwtPayload {
   id: number;
