@@ -126,43 +126,43 @@ export async function processChatMessageController(req: Request, res: Response) 
     )
       updateData.productStock = extracted.productStock;
 
-    // ── 5. Category: only set after user confirms ────────────────────────────
-    // If we previously asked to confirm a category, check if the user said "oui"
+    // ── 5. Category resolution — store directly, no verbal confirmation loop ──
+    // Root-cause fix: the previous "confirm verbally" approach caused infinite loops
+    // because suggestedCategoryName was never persisted between requests.
+    // New approach:
+    //   a) If Gemini infers a category AND we find a matching slug → store it directly.
+    //   b) If no slug found → pass suggestedCategoryName so the state machine asks
+    //      the user to clarify (a single explicit ask, not a loop).
+    //   c) If the user's current message IS a direct category reply (when the last
+    //      assistant message asked for the category), try to extract it from the message.
     let suggestedCategoryName: string | undefined;
-    const lastMessages = (record.chatMessages as ChatMessage[]).slice(-3);
-    // findLast not available in ES2022 — use manual reverse search
-    let lastAssistantMsg: ChatMessage | undefined;
-    for (let i = lastMessages.length - 1; i >= 0; i--) {
-      if (lastMessages[i].role === "assistant") { lastAssistantMsg = lastMessages[i]; break; }
-    }
 
-    if (lastAssistantMsg?.content.includes("catégorie")) {
-      const isYes = /^(oui|yes|ok|d\'accord|c\'est ça|correct|parfait|bien sûr)/i.test(
-        message.trim()
-      );
-      if (isYes && !record.categorySlug) {
-        // Extract category from previous suggestion in chat
-        const catMatch = lastAssistantMsg.content.match(/\*\*([^*]+)\*\*/);
-        if (catMatch) {
-          const slug = await resolveCategorySlug(catMatch[1]);
-          if (slug) updateData.categorySlug = slug;
-        }
-      } else if (!isYes && extracted.suggestedCategoryName) {
-        // User corrected — try to resolve the new suggestion
-        const slug = await resolveCategorySlug(extracted.suggestedCategoryName);
+    if (!record.categorySlug) {
+      // Check if the last assistant message was asking for the category
+      const lastMessages = (record.chatMessages as ChatMessage[]).slice(-4);
+      let lastAssistantMsg: ChatMessage | undefined;
+      for (let i = lastMessages.length - 1; i >= 0; i--) {
+        if (lastMessages[i].role === "assistant") { lastAssistantMsg = lastMessages[i]; break; }
+      }
+      const lastMsgWasCategoryAsk =
+        lastAssistantMsg?.content.toLowerCase().includes("catégorie") ||
+        lastAssistantMsg?.content.toLowerCase().includes("categorie");
+
+      // Try to get a category from the extracted fields
+      const candidateName =
+        extracted.suggestedCategoryName ||
+        // If user directly replied to a category question, treat the whole message as category hint
+        (lastMsgWasCategoryAsk ? message.trim() : undefined);
+
+      if (candidateName) {
+        const slug = await resolveCategorySlug(candidateName);
         if (slug) {
+          // ✅ Slug found → persist immediately, no verbal confirmation needed
           updateData.categorySlug = slug;
         } else {
-          suggestedCategoryName = extracted.suggestedCategoryName;
+          // ❌ No matching slug → let the state machine ask for clarification
+          suggestedCategoryName = candidateName;
         }
-      }
-    } else if (extracted.suggestedCategoryName && !record.categorySlug) {
-      // First time category is inferred — ask for confirmation
-      const slug = await resolveCategorySlug(extracted.suggestedCategoryName);
-      if (slug) {
-        suggestedCategoryName = extracted.suggestedCategoryName; // still confirm
-      } else {
-        suggestedCategoryName = extracted.suggestedCategoryName;
       }
     }
 
@@ -513,16 +513,72 @@ function recordToState(record: any): OnboardingState {
 }
 
 async function resolveCategorySlug(categoryName: string): Promise<string | null> {
-  // Direct slug lookup
-  const slug = categoryName
+  // ── Synonym map ────────────────────────────────────────────────────────────
+  // Maps informal French/Wolof terms to the exact category SLUG in the DB.
+  // Slugs must match exactly what was inserted via categories_insert.sql.
+  // Pattern is tested against the full lowercased input (activity description
+  // OR raw user message when they reply to a category question).
+  const SYNONYM_MAP: Array<{ pattern: RegExp; slug: string }> = [
+    // MODE — habits, vêtements, robes, boubou, pagne, chaussures...
+    { pattern: /habit|v[eê]tement|fringue|mode|fashion|robe|pantalon|chemise|boubou|pagne|tissu|lingerie|chaussure|sac.*main|accessoire.*mode/i, slug: "mode" },
+
+    // HABITS HOMMES (plus spécifique, testé avant mode si "homme" présent)
+    { pattern: /habit.*homme|v[eê]tement.*homme|chemise.*homme|pantalon.*homme|costume|streetwear.*homme/i, slug: "habits-hommes" },
+
+    // HABITS FEMMES
+    { pattern: /habit.*femme|v[eê]tement.*femme|robe.*femme|jupe|top.*femme|lingerie.*femme/i, slug: "habits-femmes" },
+
+    // ALIMENTATION — nourriture, restauration, épicerie...
+    { pattern: /aliment|manger|nourriture|[eé]picerie|boisson|plat|cuisine|resto|restaurant|thiébou|thieb|yassa|poisson|viande|l[eé]gume|fruit|c[eé]r[eé]ale|jus|snack|pâtisserie/i, slug: "alimentation" },
+
+    // BEAUTÉ — cosmétiques, soins, coiffure...
+    { pattern: /beaut[eé]|cosm[eé]tique|parfum|maquillage|soin.*peau|coiffure|ongles|manucure|spa|bien.?[eê]tre|cr[eè]me|lotion|lissage|tresse|perruque/i, slug: "beaute" },
+
+    // ÉLECTRONIQUE — téléphones, informatique, gadgets...
+    { pattern: /[eé]lectronique|t[eé]l[eé]phone|portable|smartphone|ordinateur|laptop|tablette|tv|t[eé]l[eé]vision|informatique|gadget|casque|[eé]couteur|chargeur|batterie|montre.*connect/i, slug: "electronique" },
+
+    // MAISON — meubles, décoration, ustensiles...
+    { pattern: /maison|d[eé]cor|meuble|mobilier|ustensile|vaisselle|literie|housse|rideau|tapis|lampe|cuisine.*ustensile|linge.*maison|rangement/i, slug: "maison" },
+
+    // SERVICES — prestations à domicile, artisans de service...
+    { pattern: /service|prestation|domicile|m[eé]nage|plomberie|[eé]lectricit[eé]|peinture|jardinage|gardien|nettoyage|livraison|entretien|r[eé]paration/i, slug: "services" },
+
+    // ARTISANAT — bijoux, broderie, cuir, sculpture...
+    { pattern: /artisan|bijou|bracelet|collier|sculpture|poterie|broderie|teinture|batik|cuir|artisanat|vannerie|tissage/i, slug: "artisanat" },
+
+    // SANTÉ — pharmacie, médecine, soins médicaux...
+    { pattern: /sant[eé]|m[eé]decin|pharmacie|m[eé]dicament|clinique|infirmier|dentiste|optique|lunette|soin.*m[eé]dicaux/i, slug: "sante" },
+
+    // ENFANTS & BÉBÉ — jouets, poussettes, vêtements enfants...
+    { pattern: /enfant|b[eé]b[eé]|jouet|poussette|biberon|v[eê]tement.*enfant|puericulture|scolaire|cahier|cartable|cr[eè]che/i, slug: "enfants" },
+
+    // SPORT & LOISIRS — fitness, football, vélo...
+    { pattern: /sport|fitness|gym|v[eé]lo|football|basket|maillot|[eé]quipement.*sport|musculation|running|jogging/i, slug: "sport" },
+  ];
+
+  const lower = categoryName.toLowerCase();
+
+  // 1. Try synonym map — lookup by exact slug (slug is UNIQUE in DB)
+  for (const { pattern, slug } of SYNONYM_MAP) {
+    if (pattern.test(lower)) {
+      const found = await prisma.category.findUnique({ where: { slug } });
+      if (found) return found.slug;
+      // Slug not yet in DB → continue to next pattern or fallback
+    }
+  }
+
+  // 2. Direct slug/name lookup in DB (handles Gemini's clean category names like "Mode", "Sport")
+  const derivedSlug = categoryName
     .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // strip accents
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
 
   const found = await prisma.category.findFirst({
     where: {
       OR: [
-        { slug: { contains: slug, mode: "insensitive" } },
+        { slug: derivedSlug },
+        { slug: { contains: derivedSlug, mode: "insensitive" } },
         { name: { contains: categoryName, mode: "insensitive" } },
       ],
     },
@@ -530,3 +586,5 @@ async function resolveCategorySlug(categoryName: string): Promise<string | null>
 
   return found?.slug ?? null;
 }
+
+
