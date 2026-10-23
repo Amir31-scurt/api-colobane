@@ -42,6 +42,7 @@ export async function adminListProductsUsecase(params: {
         stock: true,
         isActive: true,
         imageUrl: true,
+        thumbnailUrl: true,
         createdAt: true,
         brand: { select: { id: true, name: true, slug: true } },
       },
