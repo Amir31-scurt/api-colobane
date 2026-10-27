@@ -33,13 +33,13 @@ router.put("/sellers/:sellerId/status", requireAuth, requireRole("ADMIN"), toggl
 router.get("/alerts", requireAuth, requireRole("ADMIN"), getAdminAlertsController);
 
 // Public auth routes
+import { refreshTokenController, updateProfileController } from "../controllers/authController";
 router.post("/auth/login", adminLoginController);
 router.post("/auth/google-login", adminGoogleLoginController);
+router.post("/auth/refresh-token", refreshTokenController);
 
 // Protected (admin & seller)
 router.use(requireAuth, requireRole("ADMIN", "SELLER"));
-
-import { updateProfileController } from "../controllers/authController";
 
 router.get("/auth/me", getAdminMeController);
 router.patch("/auth/me", updateProfileController);

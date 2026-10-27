@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { adminLoginUsecase } from "../../../../core/usecases/admin/auth/adminLoginUsecase";
 import { adminLogoutUsecase } from "../../../../core/usecases/admin/auth/adminLogoutUsecase";
+import { logoutUseCase } from "../../../../core/usecases/auth/logoutUsecase";
 import { signAccessToken } from "../../../../core/security/jwt";
+import { createRefreshToken } from "../../../../core/services/tokenService";
 import { prisma } from "../../../prisma/prismaClient";
 
 
@@ -25,7 +27,14 @@ export async function adminLoginController(req: Request, res: Response) {
 }
 
 export async function adminLogoutController(req: Request, res: Response) {
-  // Client side just drops cookie/token
+  const { refreshToken } = req.body || {};
+  if (refreshToken) {
+    try {
+      await logoutUseCase(refreshToken);
+    } catch (e) {
+      console.error("[adminLogoutController] Error revoking token:", e);
+    }
+  }
   return res.json({ success: true });
 }
 
@@ -105,15 +114,34 @@ export async function adminGoogleLoginController(req: Request, res: Response) {
       await prisma.user.update({ where: { id: user.id }, data: { googleId } });
     }
 
-    // ── 6. Issue admin JWT (4 h) ──────────────────────────────────────────────
+    // ── 6. Issue admin JWT (4 h) and refresh token (30 d) ────────────────────
     const accessToken = signAccessToken(
       { sub: String(user.id), role: user.role as "ADMIN" | "SELLER" },
       "4h"
     );
 
+    const refreshToken = createRefreshToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      phone: user.phone || ""
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt
+      }
+    });
+
     return res.json({
       accessToken,
       token: accessToken,
+      refreshToken,
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
     });
   } catch (e: any) {

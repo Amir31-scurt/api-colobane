@@ -1,6 +1,7 @@
 import { prisma } from "../../../../infrastructure/prisma/prismaClient";
 import { signAccessToken } from "../../../security/jwt";
 import { verifyPassword } from "../../../security/password";
+import { createRefreshToken } from "../../../services/tokenService";
 
 
 export async function adminLoginUsecase(email: string, password: string) {
@@ -26,6 +27,24 @@ export async function adminLoginUsecase(email: string, password: string) {
   // Use the actual user role in the token
   const accessToken = signAccessToken({ sub: String(user.id), role: user.role as "ADMIN" | "SELLER" }, "4h");
 
+  const refreshToken = createRefreshToken({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    phone: user.phone || ""
+  });
+
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt
+    }
+  });
+
   await prisma.auditLog.create({
     data: {
       action: "ADMIN_LOGIN",
@@ -39,6 +58,7 @@ export async function adminLoginUsecase(email: string, password: string) {
   return {
     accessToken,
     token: accessToken, // Alias for frontend compatibility
+    refreshToken,
     user: { id: user.id, email: user.email, name: user.name, role: user.role },
     admin: { id: user.id, email: user.email, role: user.role }, // Legacy field
   };
