@@ -63,31 +63,48 @@ export async function createBrandController(req: Request, res: Response) {
       }
     }
 
-    // Notify admins about new application
+    const brandMetadata = {
+      brandId: brand.id,
+      brandName: name,
+      brandSlug: slug,
+      applicantName: user?.name || "Vendeur",
+      applicantEmail: user?.email || "",
+      description: description || ""
+    };
+
+    // 1. Notify all admins in database (creates in-app notification + sends email via notificationTemplates)
     try {
-      await import("../../../core/services/notificationService").then(m =>
-        m.broadcastToAdmins(
-          "BRAND_PENDING",
-          "Nouvelle demande de vendeur",
-          `La boutique "${name}" attend votre approbation.`,
-          { brandId: brand.id, brandName: name }
-        )
+      const { broadcastToAdmins } = await import("../../../core/services/notificationService");
+      await broadcastToAdmins(
+        "BRAND_PENDING",
+        "Nouvelle demande de vendeur",
+        `La boutique "${name}" attend votre approbation.`,
+        brandMetadata
       );
     } catch (e) {
       console.error("Failed to notify admins:", e);
     }
 
-    // Legacy email notification (optional, kept for redundancy)
-    const adminEmail = process.env.ADMIN_EMAIL;
-    if (adminEmail) {
+    // 2. Explicitly send email notification to mycolobane@gmail.com and process.env.ADMIN_EMAIL
+    const adminRecipients = new Set<string>();
+    adminRecipients.add("mycolobane@gmail.com");
+    if (process.env.ADMIN_EMAIL) {
+      adminRecipients.add(process.env.ADMIN_EMAIL);
+    }
+
+    const { getEmailTemplate } = await import("../../email/templates/notificationTemplates");
+    const adminEmailTemplate = getEmailTemplate("BRAND_PENDING", brandMetadata);
+
+    for (const recipient of adminRecipients) {
       try {
         await sendEmail({
-          to: adminEmail,
-          subject: `🆕 Nouvelle demande de vendeur: ${name}`,
-          html: getAdminNotificationTemplate(user?.name || "Unknown", name, slug)
+          to: recipient,
+          subject: adminEmailTemplate?.subject || `🆕 Nouvelle demande de vendeur: ${name}`,
+          html: adminEmailTemplate?.html || getAdminNotificationTemplate(user?.name || "Vendeur", name, slug)
         });
+        console.log(`[createBrand] Admin notification sent to ${recipient}`);
       } catch (emailErr) {
-        console.error("[createBrand] Admin notification failed:", emailErr);
+        console.error(`[createBrand] Admin notification to ${recipient} failed:`, emailErr);
       }
     }
 

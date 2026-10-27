@@ -115,6 +115,47 @@ export async function publishBrandUsecase(
   // 7. Update onboarding record with the new brandId + publishedAt
   await updateOnboardingRecord(input.userId, brand.id);
 
+  // 8. Notify admins and send email
+  try {
+    const brandMetadata = {
+      brandId: brand.id,
+      brandName: input.brandName,
+      brandSlug: slug,
+      applicantName: input.ownerName,
+      contactPhone: input.contactPhone,
+      description: input.activity,
+    };
+
+    const { broadcastToAdmins } = await import("../../services/notificationService");
+    await broadcastToAdmins(
+      "BRAND_PENDING",
+      "Nouvelle boutique créée",
+      `La boutique "${input.brandName}" a été enregistrée par ${input.ownerName}.`,
+      brandMetadata
+    );
+
+    // Also send directly to mycolobane@gmail.com
+    const { sendEmail } = await import("../../../infrastructure/email/resendProvider");
+    const { getEmailTemplate } = await import("../../../infrastructure/email/templates/notificationTemplates");
+    const template = getEmailTemplate("BRAND_PENDING", brandMetadata);
+    if (template) {
+      await sendEmail({
+        to: "mycolobane@gmail.com",
+        subject: template.subject,
+        html: template.html,
+      });
+      if (process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL !== "mycolobane@gmail.com") {
+        await sendEmail({
+          to: process.env.ADMIN_EMAIL,
+          subject: template.subject,
+          html: template.html,
+        });
+      }
+    }
+  } catch (notifErr) {
+    console.error("[publishBrandUsecase] Admin notification failed:", notifErr);
+  }
+
   return { ok: true, brandId: brand.id, brandSlug: brand.slug };
 }
 
