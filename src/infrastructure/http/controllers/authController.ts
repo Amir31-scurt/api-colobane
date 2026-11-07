@@ -202,10 +202,11 @@ export async function updateProfileController(req: AuthRequest, res: Response) {
     const userId = req.user?.id || req.auth?.userId;
     if (!userId) return res.status(401).json({ message: "Non authentifié" });
 
-    const { name, password, avatarUrl } = req.body;
+    const { name, phone, password, avatarUrl } = req.body;
     const updatedUser = await updateProfileUsecase({
       userId,
       name,
+      phone,
       password,
       avatarUrl
     });
@@ -215,6 +216,9 @@ export async function updateProfileController(req: AuthRequest, res: Response) {
       user: updatedUser
     });
   } catch (err: any) {
+    if (err.code === "P2002" && err.meta?.target?.includes("phone")) {
+      return res.status(409).json({ message: "Ce numéro de téléphone est déjà associé à un autre compte." });
+    }
     console.error(err);
     return res.status(500).json({ message: "Erreur interne" });
   }

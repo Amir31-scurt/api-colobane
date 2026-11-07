@@ -4,15 +4,17 @@ import bcrypt from "bcryptjs";
 export interface UpdateProfileInput {
     userId: number;
     name?: string;
+    phone?: string;
     password?: string;
     avatarUrl?: string;
 }
 
 export async function updateProfileUsecase(data: UpdateProfileInput) {
-    const { userId, name, password, avatarUrl } = data;
+    const { userId, name, phone, password, avatarUrl } = data;
 
     const updateData: any = {};
     if (name) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone.trim();
     if (avatarUrl) updateData.avatarUrl = avatarUrl;
 
     if (password) {
