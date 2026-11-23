@@ -10,6 +10,7 @@ import { verifyOtpUseCase } from "../../../core/usecases/auth/verifyOtpUsecase";
 import { requestOtpUseCase } from "../../../core/usecases/auth/requestOtpUsecase";
 import { logoutUseCase } from "../../../core/usecases/auth/logoutUsecase";
 import { updateProfileUsecase } from "../../../core/usecases/users/updateProfileUsecase";
+import { parseSenegalPhone, SENEGAL_PHONE_ERROR_MESSAGE } from "../../../utils/senegalPhone";
 
 export async function registerController(req: Request, res: Response) {
   try {
@@ -27,13 +28,21 @@ export async function registerController(req: Request, res: Response) {
       });
     }
 
-    const user = await registerUser({ name, email, password, phone });
+    const parsedPhone = parseSenegalPhone(phone);
+    if (!parsedPhone.valid) {
+      return res.status(400).json({ message: parsedPhone.error });
+    }
+
+    const user = await registerUser({ name, email, password, phone: parsedPhone.normalized });
 
     return res.status(201).json({
       message: "Utilisateur créé",
       user
     });
   } catch (err: any) {
+    if (err.message === "INVALID_SENEGAL_PHONE") {
+      return res.status(400).json({ message: SENEGAL_PHONE_ERROR_MESSAGE });
+    }
     if (err.message === "EMAIL_ALREADY_USED") {
       return res.status(409).json({ message: "Email déjà utilisé" });
     }
@@ -159,7 +168,12 @@ export async function requestOtpController(req: Request, res: Response) {
     return res.status(400).json({ message: "Numéro requis" });
   }
 
-  await requestOtpUseCase(phone);
+  const parsedPhone = parseSenegalPhone(phone);
+  if (!parsedPhone.valid) {
+    return res.status(400).json({ message: parsedPhone.error });
+  }
+
+  await requestOtpUseCase(parsedPhone.normalized);
 
   res.json({ status: "ok", message: "OTP envoyé" });
 }
@@ -203,10 +217,19 @@ export async function updateProfileController(req: AuthRequest, res: Response) {
     if (!userId) return res.status(401).json({ message: "Non authentifié" });
 
     const { name, phone, password, avatarUrl } = req.body;
+    let normalizedPhone: string | undefined = undefined;
+    if (phone !== undefined && String(phone).trim() !== "") {
+      const parsedPhone = parseSenegalPhone(phone);
+      if (!parsedPhone.valid) {
+        return res.status(400).json({ message: parsedPhone.error });
+      }
+      normalizedPhone = parsedPhone.normalized;
+    }
+
     const updatedUser = await updateProfileUsecase({
       userId,
       name,
-      phone,
+      phone: normalizedPhone,
       password,
       avatarUrl
     });
@@ -236,8 +259,17 @@ export async function googleLoginController(req: Request, res: Response) {
       return res.status(400).json({ message: "Token requis" });
     }
 
+    let validatedPhone = phone;
+    if (phone && String(phone).trim() !== "") {
+      const parsedPhone = parseSenegalPhone(phone);
+      if (!parsedPhone.valid) {
+        return res.status(400).json({ message: parsedPhone.error });
+      }
+      validatedPhone = parsedPhone.normalized;
+    }
+
     console.log("🔵 [googleLoginController] calling googleLogin usecase...");
-    const result = await googleLogin({ token, phone });
+    const result = await googleLogin({ token, phone: validatedPhone });
     console.log("🟢 [googleLoginController] Success");
 
     return res.json({
@@ -269,7 +301,16 @@ export async function appleLoginController(req: Request, res: Response) {
     const { token, phone, name } = req.body;
     if (!token) return res.status(400).json({ message: "Token requis" });
 
-    const result = await appleLogin({ token, phone, name });
+    let validatedPhone = phone;
+    if (phone && String(phone).trim() !== "") {
+      const parsedPhone = parseSenegalPhone(phone);
+      if (!parsedPhone.valid) {
+        return res.status(400).json({ message: parsedPhone.error });
+      }
+      validatedPhone = parsedPhone.normalized;
+    }
+
+    const result = await appleLogin({ token, phone: validatedPhone, name });
     return res.json({
       message: "Connexion Apple réussie",
       ...result

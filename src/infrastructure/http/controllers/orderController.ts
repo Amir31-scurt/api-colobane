@@ -5,9 +5,19 @@ import { listSellerOrdersUsecase } from "../../../core/usecases/orders/listSelle
 import { updateOrderStatusUsecase } from "../../../core/usecases/orders/updateOrderStatusUsecase";
 import { AuthRequest } from "../middlewares/authMiddleware";
 import { getOrderTrackingUsecase } from "../../../core/usecases/orders/getOrderTrackingUsecase";
+import { parseSenegalPhone } from "../../../utils/senegalPhone";
 
 export async function createOrderController(req: AuthRequest, res: Response) {
   try {
+    let customerPhone = req.body.customerPhone;
+    if (customerPhone !== undefined && String(customerPhone).trim() !== "") {
+      const parsedPhone = parseSenegalPhone(customerPhone);
+      if (!parsedPhone.valid) {
+        return res.status(400).json({ message: parsedPhone.error });
+      }
+      customerPhone = parsedPhone.e164;
+    }
+
     const order = await createOrderUsecase({
       userId: req.user?.id,
       items: req.body.items,
@@ -16,7 +26,7 @@ export async function createOrderController(req: AuthRequest, res: Response) {
       shippingAddress: req.body.shippingAddress,
       paymentProvider: req.body.paymentProvider,
       customerName: req.body.customerName,
-      customerPhone: req.body.customerPhone
+      customerPhone
     });
 
     return res.status(201).json(order);

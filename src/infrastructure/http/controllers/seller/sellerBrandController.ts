@@ -4,6 +4,7 @@ import { AuthRequest } from "../../middlewares/authMiddleware";
 import { uploadImage } from "../../../files/uploadConfig";
 import multer from "multer";
 import slugify from "slugify";
+import { parseSenegalPhone } from "../../../../utils/senegalPhone";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 export const uploadMiddleware = upload.single("logo");
@@ -54,6 +55,22 @@ export async function updateMyBrandController(req: AuthRequest, res: Response) {
       if (req.body[key] !== undefined) {
         updates[key] = req.body[key];
       }
+    }
+
+    if (updates.phone && String(updates.phone).trim() !== "") {
+      const parsedPhone = parseSenegalPhone(updates.phone);
+      if (!parsedPhone.valid) {
+        return res.status(400).json({ error: parsedPhone.error, message: parsedPhone.error });
+      }
+      updates.phone = parsedPhone.e164;
+    }
+
+    if (updates.whatsappNumber && String(updates.whatsappNumber).trim() !== "") {
+      const parsedWa = parseSenegalPhone(updates.whatsappNumber);
+      if (!parsedWa.valid) {
+        return res.status(400).json({ error: parsedWa.error, message: parsedWa.error });
+      }
+      updates.whatsappNumber = parsedWa.e164;
     }
 
     if (updates.name && updates.name !== brand.name) {

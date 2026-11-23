@@ -4,6 +4,9 @@ import { requireAuth } from "../middlewares/auth/requireAuth";
 import {
   getChatStateController,
   processChatMessageController,
+  processChatVoiceController,
+  synthesizeChatVoiceController,
+  voiceUploadMiddleware,
   skipLogoController,
   dismissCoachMarkController,
   setProductImageController,
@@ -25,6 +28,8 @@ router.post("/generate-description", requireAuth, generateDescriptionController)
 
 router.get("/chat/state", requireAuth, getChatStateController);
 router.post("/chat", requireAuth, aiChatRateLimiter, processChatMessageController);
+router.post("/chat/voice", requireAuth, aiChatRateLimiter, voiceUploadMiddleware, processChatVoiceController);
+router.post("/chat/tts", requireAuth, aiChatRateLimiter, synthesizeChatVoiceController);
 router.post("/chat/skip-logo", requireAuth, skipLogoController);
 router.post("/chat/product-image", requireAuth, setProductImageController);
 router.post("/chat/dismiss-coachmark", requireAuth, dismissCoachMarkController);
