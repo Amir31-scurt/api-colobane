@@ -5,14 +5,36 @@ import { sendNotification } from "../../services/notificationService";
 import { calculateFeesForOrderUsecase } from "../fees/calculateFeesForOrderUsecase";
 import { saveOrderFeesUsecase } from "../fees/saveOrderFeesUsecase";
 
-export async function confirmCashPaymentUsecase(orderId: number) {
+export async function confirmCashPaymentUsecase(
+  orderId: number,
+  actor?: { userId: number; role?: string }
+) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { Payment: true }
+    include: {
+      Payment: true,
+      items: {
+        include: {
+          product: {
+            include: { brand: { select: { ownerId: true } } },
+          },
+        },
+      },
+    },
   });
 
   if (!order) {
     throw new Error("ORDER_NOT_FOUND");
+  }
+
+  // Ownership check: a SELLER may only confirm cash for orders containing their own brand's products
+  if (actor && actor.role !== "ADMIN") {
+    const ownsItem = order.items.some(
+      (item) => item.product?.brand?.ownerId === actor.userId
+    );
+    if (!ownsItem) {
+      throw new Error("FORBIDDEN");
+    }
   }
 
   const cashPayment = order.Payment.find(
@@ -40,7 +62,7 @@ export async function confirmCashPaymentUsecase(orderId: number) {
   const content = buildNotificationContent({
     type: NotificationType.ORDER_PAID,
     orderId,
-    status
+    status: "PAID"
   });
   
   await sendNotification({
@@ -48,7 +70,7 @@ export async function confirmCashPaymentUsecase(orderId: number) {
     type: NotificationType.ORDER_PAID,
     title: content.title,
     message: content.message,
-    metadata: { orderId, status }
+    metadata: { orderId, status: "PAID" }
   });
 
   const fees = await calculateFeesForOrderUsecase(orderId, "WAVE");

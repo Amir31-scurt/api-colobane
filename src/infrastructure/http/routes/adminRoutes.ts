@@ -38,30 +38,31 @@ router.post("/auth/login", adminLoginController);
 router.post("/auth/google-login", adminGoogleLoginController);
 router.post("/auth/refresh-token", refreshTokenController);
 
-// Protected (admin & seller)
+// Protected (admin & seller auth endpoints)
 router.use(requireAuth, requireRole("ADMIN", "SELLER"));
 
 router.get("/auth/me", getAdminMeController);
 router.patch("/auth/me", updateProfileController);
 router.post("/auth/logout", adminLogoutController);
 
-router.get("/stats", adminStatsController);
-router.get("/stats/timeseries", adminGetTimeSeriesStatsController);
-router.get("/stats/kpis", adminGetKPIsController);
+// Global platform administration — strictly ADMIN only
+router.get("/stats", requireRole("ADMIN"), adminStatsController);
+router.get("/stats/timeseries", requireRole("ADMIN"), adminGetTimeSeriesStatsController);
+router.get("/stats/kpis", requireRole("ADMIN"), adminGetKPIsController);
 
 // Orders
-router.get("/orders", adminListOrdersController);
-router.get("/orders/:id", adminGetOrderController);
+router.get("/orders", requireRole("ADMIN"), adminListOrdersController);
+router.get("/orders/:id", requireRole("ADMIN"), adminGetOrderController);
 router.patch("/orders/:id/status", requireRole("ADMIN"), adminUpdateOrderStatusController);
 
 // Products
-router.get("/products", adminListProductsController);
+router.get("/products", requireRole("ADMIN"), adminListProductsController);
 // Write actions restricted to ADMIN
 router.patch("/products/:id", requireRole("ADMIN"), adminUpdateProductController);
 router.patch("/products/:id/active", requireRole("ADMIN"), adminToggleProductActiveController);
 
 // Users
-router.get("/users", adminListUsersController);
+router.get("/users", requireRole("ADMIN"), adminListUsersController);
 // Write actions restricted to ADMIN
 router.patch("/users/:id/role", requireRole("ADMIN"), adminUpdateUserRoleController);
 router.patch("/users/:id/block", requireRole("ADMIN"), adminToggleUserBlockController);

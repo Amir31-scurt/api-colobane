@@ -99,10 +99,17 @@ export async function orangeMoneyWebhookController(req: Request, res: Response) 
 export async function confirmCashPaymentController(req: AuthRequest, res: Response) {
   try {
     const orderId = Number(req.params.orderId);
-    await confirmCashPaymentUsecase(orderId);
+    await confirmCashPaymentUsecase(orderId, {
+      userId: req.user!.id,
+      role: req.user!.role,
+    });
     return res.json({ message: "Paiement cash confirmé et commande marquée comme payée" });
   } catch (err: any) {
     console.error(err);
+
+    if (err.message === "FORBIDDEN") {
+      return res.status(403).json({ message: "Non autorisé à confirmer cette commande" });
+    }
 
     if (err.message === "ORDER_NOT_FOUND") {
       return res.status(404).json({ message: "Commande introuvable" });

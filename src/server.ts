@@ -33,6 +33,7 @@ import favoriteRoutes from "./infrastructure/http/routes/favoriteRoutes";
 import contactRoutes from "./infrastructure/http/routes/contactRoutes";
 import aiRoutes from "./infrastructure/http/routes/aiRoutes";
 import serviceRoutes from "./infrastructure/http/routes/serviceRoutes";
+import debugRoutes from "./infrastructure/http/routes/debugRoutes";
 const app = express();
 
 app.set('trust proxy', 1);
@@ -104,12 +105,11 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/services", serviceRoutes);
 
 
-// Debug Route (Temporary)
-import debugRoutes from "./infrastructure/http/routes/debugRoutes";
-app.use("/api/debug", debugRoutes);
-
-// Documentation
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Debug & Swagger docs: development only (never exposed in production)
+if (process.env.NODE_ENV !== "production") {
+  app.use("/api/debug", debugRoutes);
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // 404 Handler - Catch all other routes
 app.use((req, res, next) => {
